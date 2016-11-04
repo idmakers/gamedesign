@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<style >
+	#info {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+body {
+  overflow: hidden;
+}
+</style>
+
+<div id="info">Collision Part 0
+</div>
+<audio autoplay loop>
+<!--<source src="1234.wav" type="audio/wav">-->
+</audio>
+<link rel="stylesheet" type="text/css" href="../123.css" />
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="httpS://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+<script type="text/javascript"></script>
+<input id="score"  type="text" value="0">
+<script >
+
+
+  var snd = new Audio("water001.mp3");
+  var camera, scene, renderer;
+  var satellite, angle = 0;
+  var mousePoint;
+  var mouse = new THREE.Vector2();
+  //var stats;
+  var pos, vel, force;
+  var clock = new THREE.Clock();
+  var sprite;
+  var texture;
+  var keyboard = new KeyboardState();
+  var height =100;
+  var spriteR = 25;
+	var stArray = [];
+	var baseS = 0;
+	var counter = 0;
+
+  init();
+  animate();
+
+	function setUpStArray() {
+	  for (var i = 0; i < 3; i++) {
+	    var row = [];
+	    for (var j = 0; j < 8; j++)
+	      row.push(new THREE.Vector2(j * 0.05, 1 - 0.85 * i));
+	    stArray.push(row);
+	  }
+	}
+
+  function init() {
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+
+
+	// loading texture from imgur.com
+	THREE.ImageUtils.crossOrigin = '';
+	texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/2O5CXyh.jpg');
+	texture.wrapS = THREE.RepeatWrapping;
+	// setting up texMat
+
+    pos = new THREE.Vector3(-20, 40, 0);
+    vel = new THREE.Vector3(10, 0, 0);
+    //force = new THREE.Vector3(0, -90, 0);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x888888);
+    document.body.appendChild(renderer.domElement);
+
+    scene = new THREE.Scene();
+    camera = new THREE.OrthographicCamera(-50, 50, 80, -20, -10, 100);
+    camera.position.z = 10;
+    scene.add(camera);
+
+    for (var i = 0; i < 5; i++) {
+      var background = new THREE.Mesh(new THREE.PlaneGeometry(100, height),new THREE.MeshBasicMaterial({map : texture}) );
+      background.position.y = 30;
+      background.position.x = i * 100;
+      scene.add(background);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+		setUpStArray();
+
+  // loading texture from imgur.com
+  THREE.ImageUtils.crossOrigin = '';
+  texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/ShyHLax.png');
+  texture.wrapS = THREE.RepeatWrapping;
+
+  // setting up texMat
+  var texMat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,  // cutout texture: set transparent: true
+    side: THREE.DoubleSide
+  });
+
+  var geometry = new THREE.Geometry();
+  geometry.vertices.push(
+    new THREE.Vector3(-5, -5, 0),
+    new THREE.Vector3(5, -5, 0),
+    new THREE.Vector3(5,5, 0),
+    new THREE.Vector3(-5,5, 0)
+  );
+
+  var face;
+  face = new THREE.Face3(0, 1, 2);
+  geometry.faces.push(face);
+  face = new THREE.Face3(0, 2, 3);
+  geometry.faces.push(face);
+
+  geometry.faceVertexUvs[0].push([stArray[1][0], stArray[1][1], stArray[0][1]]);
+  geometry.faceVertexUvs[0].push([stArray[1][0], stArray[0][1], stArray[0][0]]);
+
+  geometry.computeBoundingSphere();
+  geometry.computeFaceNormals();
+  geometry.computeVertexNormals();
+
+  sprite = new THREE.Mesh(geometry, texMat);
+  scene.add(sprite);
+	//////////////////////////////////////////////////////////
+    sprite.position.y = 30;
+
+    var ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 50), new THREE.MeshBasicMaterial({
+      color: 0xff0000
+    }));
+    scene.add(ground);
+    ground.position.y = -25;
+    ground.position.x = 200; // this is WRong!!!
+
+    window.addEventListener('resize', onWindowResize, false);
+    // window.addEventListener('mousedown', onDocumentMouseDown, false);
+  }
+
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHei50t;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+	function spriteAnimate() {
+   var geometry = sprite.geometry;
+   var st0 = stArray[1][baseS];
+   var st1 = stArray[1][baseS + 1];
+   var st2 = stArray[0][baseS + 1];
+   var st3 = stArray[0][baseS];
+
+   geometry.faceVertexUvs[0] = [];
+   geometry.faceVertexUvs[0].push([st0, st1, st2]);
+   geometry.faceVertexUvs[0].push([st0, st2, st3]);
+   geometry.uvsNeedUpdate = true;
+
+   baseS = (baseS + 1) % 6;
+ }
+
+
+  function animate() {
+		counter++;
+
+		if (counter % 10 === 0)
+		spriteAnimate();
+    var dt = clock.getDelta();
+
+    keyboard.update();
+    if (keyboard.down('right')) {
+      vel.x += 10;
+    }
+    if (keyboard.down('left')) {
+      vel.x -= 10;
+    }
+    if (keyboard.down('space')) {
+      vel.y += 90;
+      snd.play();
+    }
+    if (sprite.position.x <= 400 && sprite.position.x > 2) {
+      camera.position.x = sprite.position.x
+    }
+		else if(sprite.position.x >400){
+			camera.position.x = 400;
+		}
+		else if(sprite.position.x <= 2){
+			camera.position.x = 0;
+		}
+
+
+     $("#score").val(camera.position.x);
+
+
+    // force: add gravity first
+    force = new THREE.Vector3(0, -90, 0);
+    if (pos.y <= spriteR) { // if contact, add contact force
+      force.add(new THREE.Vector3(0, 90, 0));
+    }
+    // then do Euler's
+    vel.add(force.clone().multiplyScalar(dt));
+    pos.add(vel.clone().multiplyScalar(dt));
+    sprite.position.copy(pos);
+    /////////////////////////////
+
+
+    // collision
+    // if (x-p).n < 0 then hit
+    /*
+    if (pos.clone().sub(planeP).dot(planeN) < 0) {
+    	pos.y = 30;
+      vel.set (0,0,0);
+      }
+      */
+    // bounce back
+    if (pos.y <= spriteR) {
+      //pos.y = 0;
+      vel.y *= -0.83;
+    }
+    if (pos.y > height) {
+      //pos.y = 0;
+      pos.y = spriteR;
+    }
+		if (pos.x < -47) {
+				pos.x = -47 + spriteR;
+				vel.x = 0;
+		}
+		if (pos.x > 450) {
+			vel.x = 0;
+			pos.x = 450-spriteR;
+		}
+
+
+
+    requestAnimationFrame(animate);
+    render();
+  }
+
+  function render() {
+    renderer.render(scene, camera);
+  }
+
+  //window.focus();
+
+
+</script>
+
+　
+
+<head>
+	<title></title>
+</head>
+<body>
+
+</body>
+</html>
