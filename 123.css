@@ -1,0 +1,876 @@
+#header {
+    background-color:#FFFFFF;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    padding:3px;
+}
+.whitewd {
+    background-color:#c2d6d6;
+    color: #FFFFFF;
+    font-family:Cursive;
+    font-size:30px;
+}
+
+#xx {
+    text-align:center;
+    font-size:30px;
+    color:#313ea5;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    top:auto;
+    margin: auto;
+    width: 50%
+    height: auto;
+}
+#aaaa {
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+
+    font-family:Cursive;
+    position: absolute;
+    margin: auto;
+    right: 0px;
+    left: 0px;
+    right: 0px;
+    width: 350px;
+    height: 200px;
+}
+#xxxx {
+    text-align:center;
+    font-size:60px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
+    width: 1200px;
+    height: 800px;
+}
+#bbbb {
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
+    width: 1000px;
+    height: 200px;
+}
+#cccc {
+    text-align:center;
+    font-size:25px;
+    color:#888888;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+}
+
+
+
+
+*{
+ padding:0;
+ margin:0;
+}
+#cssmenu{
+ width:720px;
+ margin-right: auto;
+ margin-left: auto;
+}
+/*-------view style----------*/
+.nav,.nav ul {
+ list-style-type: none;
+}
+.drop a {
+ color: #000;
+ text-decoration: none;
+ font-size: 30px;
+ text-align:center;
+ font-family: Arial, Helvetica, sans-serif;
+}
+.drop{
+ float:right;
+ width:200px;
+ background-color: #FFFFFF;
+ position:relative;
+ margin: auto;
+ height:50px;
+ line-height: 50px;
+}
+
+
+.drop:hover{
+ background-color:  #FFFFFF;
+ color: #FFFFFF;
+ cursor: pointer;
+}
+.drop ul li:hover{
+ background-color: #FFCCCC;
+}
+.drop .dlist{
+ background-color: #FFFFFF;
+ width:180px;
+ position: absolute;
+ top:60px;
+ left:10px;
+}
+.drop .fly{
+ display:block;
+ position:relative;
+ width:180px;
+ height: 50px;
+ font-size: 3px;
+}
+.drop .fly ul{
+ position: absolute;
+ display:block;
+ width:150px;
+ top:0px;
+ right:-150px;
+ background-color: #09F;
+}
+
+/*-----------show---------------*/
+.drop ul{
+ display: none;
+}
+.drop:hover ul {
+ display: block;
+}
+.drop .fly ul {
+ display: none;
+}
+.drop .fly:hover ul {
+ display: block;
+}
+.drop .fly .fly ul {
+ display: none;
+}
+.drop .fly .fly:hover ul {
+ display: block;
+}
+.drop .fly .fly .fly ul {
+ display: none;
+}
+.drop .fly .fly .fly:hover ul {
+ display: block;
+}
+div.dddd {
+    font-size:25px;
+    color:#2626FF;
+    text-align:center;
+    font-family:Cursive;
+    height: 300px;
+    border-width: 3px;
+    border-style: solid;
+    border-radius: 10px;
+    border-color: white;
+    position: relative;
+    top:100px;
+    display:inline-block;
+    padding:20px;
+    width: 300px;
+}
+.dddd a{ /*產品名稱*/
+    font-weight: normal;
+    font-size: 20px;
+    padding:3px 3px 3px 6px;
+    display:block;
+    font-family:Microsoft JhengHei;
+    color:#333333;
+}
+.dddd p{ /*價錢*/
+    font-weight: normal;
+    font-size: 30px;
+    padding:3px 3px 3px 6px;
+    display:block;
+    color:#cc0000;
+    font-family:Microsoft JhengHei;
+}
+div.eeee {
+    background-image: url("13254471_712706622202683_550852003907939716_n.jpg");
+    font-size:25px;
+    position: relative;
+    margin: auto;
+    padding:20px;
+    display:inline-block;
+    width: 10px;
+}
+#ffff {
+    background-color: #CCDDFF;
+    color: #000;
+    font-family:Cursive;
+    font-size:20px;
+}
+#ffffmid600{
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    margin: auto;;
+    left: 0;
+    right:0;
+    width: 600px;
+    height: 50px;
+}
+#ffffmid1200 {
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    width: 1200px;
+    margin: auto;;
+    left: 0;
+    right:0;
+    height: 50px;
+}
+#ffffmid1000 {
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    width: 1000px;
+    margin: auto;;
+    left: 0;
+    right:0;
+    height: 50px;
+}
+#ffffmid800 {
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    width: 800px;
+    margin: auto;;
+    left: 0;
+    right:0;
+    height: 50px;
+}
+#ffffmid200 {
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position: absolute;
+    width: 200px;
+    margin: auto;
+    top:0;
+    right:0;
+    height: 50px;
+}
+#cssmenu{
+ width:720px;
+ margin-right: auto;
+ margin-left: auto;
+}
+/*-------view style----------*/
+.nav,.nav ul {
+ list-style-type: none;
+}
+.ffffmid200 a {
+ color: #000;
+ text-decoration: none;
+ font-size: 30px;
+ text-align:center;
+ font-family: Arial, Helvetica, sans-serif;
+}
+.ffffmid200{
+ float:right;
+ width:200px;
+ background-color: #FFFFFF;
+ position:relative;
+ margin: auto;
+ height:50px;
+ line-height: 50px;
+}
+
+
+.ffffmid200:hover{
+ background-color:  #FFFFFF;
+ color: #FFFFFF;
+ cursor: pointer;
+}
+.ffffmid200 ul li:hover{
+ background-color: #FFCCCC;
+}
+.ffffmid200 .dlist{
+ background-color: #FFFFFF;
+ width:180px;
+ position: absolute;
+ top:60px;
+ left:10px;
+}
+.ffffmid200 .fly{
+ display:block;
+ position:relative;
+ width:180px;
+ height: 50px;
+ font-size: 3px;
+}
+.ffffmid200 .fly ul{
+ position: absolute;
+ display:block;
+ width:150px;
+ top:0px;
+ right:-150px;
+ background-color: #09F;
+}
+
+/*-----------show---------------*/
+.ffffmid200 ul{
+ display: none;
+}
+.ffffmid200:hover ul {
+ display: block;
+}
+.ffffmid200 .fly ul {
+ display: none;
+}
+.ffffmid200 .fly:hover ul {
+ display: block;
+}
+.ffffmid200 .fly .fly ul {
+ display: none;
+}
+.ffffmid200 .fly .fly:hover ul {
+ display: block;
+}
+.ffffmid200 .fly .fly .fly ul {
+ display: none;
+}
+.ffffmid200 .fly .fly .fly:hover ul {
+ display: block;
+}
+#backtotop{
+    display:scroll;
+    position:fixed;
+    bottom:5px;right:5px;
+}
+input[type="submit"]{
+   font-weight: center;
+    font-size: 20px;
+    padding:3px 3px 3px 6px;
+    display:block;
+    font-family:Microsoft JhengHei;
+    color:#333333;
+    width:300px;
+    height: 30px;
+    background: white;
+    border-width: 0;
+    cursor: pointer;
+}
+input[type="text"]{
+   font-weight: center;
+    font-size: 20px;
+
+    display:block;
+    font-family:Microsoft JhengHei;
+    color:#333333;
+    width:300px;
+    height: 30px;
+    background: white;
+
+}
+input[type="password"]{
+   font-weight: center;
+    font-size: 20px;
+
+    display:block;
+    font-family:Microsoft JhengHei;
+    left: 200px;
+    width:300px;
+    height: 30px;
+    background: white;
+
+}
+#xlxlx{ /*+*/
+    font-weight: normal;
+    font-size: 15px;
+
+    display:block;
+    font-family:Hero;
+    color:#333333;
+    position: absolute;
+
+    left: 800px;
+    top:454px;
+    width:20px;
+    height: 20px;
+    background: white;
+    border-width: 0;
+    cursor: pointer;
+}
+#xlxx{ /*-*/
+   font-weight: normal;
+    font-size: 15px;
+    display:block;
+    font-family:Hero;
+    color:#333333;
+    position: absolute;
+
+    left: 720px;
+    top:454px;
+    width:20px;
+    height: 20px;
+    background: white;
+    border-width: 0;
+    cursor: pointer;
+}
+#etet {  /*加入購物車字樣*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    left: 340px;
+    right: 0px;
+    width: 300px;
+    height: 200px;
+    top:500px;
+    cursor: pointer;
+}
+#etet2 {  /*型號下拉選單*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    left: 340px;
+    right: 0px;
+    top:420px;
+
+}
+#etet3 {  /*商品分頁價錢顯示*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#cc0000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    left: 330px;
+    right: 0px;
+
+    top:370px;
+
+}
+#etet4 {  /*商品分頁名稱顯示*/
+
+    font-weight: normal;
+    font-size:22px;
+    color:#262626;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    left: 340px;
+    right: 0px;
+
+    top:320px;
+
+}
+#etet5 {  /*商品分頁圖片顯示*/
+
+    position: absolute;
+    margin: auto;
+    left: -210px;
+    right: 0px;
+    width: 300px;
+    height: 200px;
+    top:270px;
+
+}
+#obov { /*商品分頁數量顯示字樣*/
+    text-align:right;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Hero;
+    position: absolute;
+    margin: auto;
+
+    left: 343px;
+    right: 0px;
+    width: 50px;
+    height: 50px;
+    top:450px;
+
+}
+#etet6 { /*會員修改選單*/
+    text-align:right;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+
+    left: 200px;
+    right: 0px;
+
+    top:100px;
+
+}
+#etet7 { /*會員資料修改顯示*/
+    text-align:right;
+    font-size:30px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+
+    left:370px;
+    right:0px;
+
+    top:300px;
+}
+#tttt1{ /*debug用*/
+    text-align:right;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    width: 10px;
+    left: 30px;
+    right: 0px;
+
+    top:500px;
+}
+#tttt2{ /*繼續瀏覽*/
+    text-align:right;
+    font-size:25px;
+    color:#000000;
+
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    left: 30px;
+    right: 0px;
+
+    top:600px;
+}
+#etet8 { /*會員資料修改顯示*/
+    text-align:right;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+
+    left:450px;
+    right:0px;
+
+    top:300px;
+}
+#etet9 { /*購物車表格內容*/
+
+    text-align:right;
+    font-size:20px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    border-collapse:collapse;
+     border: 1px solid #ffffff;
+     border-bottom: #d9d9d9;
+
+    left:0px;
+    right:0px;
+    width: 600px;
+      height: 50px;
+      top:250px;
+
+}
+#tttt3 {  /*購買方式下拉選單*/
+
+    font-weight: normal;
+    font-size:15px;
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    right:650px;
+    width: 90px;
+    height: 30px;
+    top:215px;
+
+
+}
+#tttt4 {  /*運送方式下拉選單*/
+
+    font-weight: normal;
+  font-size:15px;
+
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+
+  right: :300px;
+  width: 90px;
+  height: 30px;
+  top:215px;
+
+
+}
+#tttt6 {  /*確認訂單按鈕*/
+
+    font-weight: normal;
+      font-size:15px;
+
+    color:#000000;
+    text-align:center;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    left: 930px;
+    padding: 1px;
+    top:215px;
+
+
+}
+#tttt5 {/*確認訂單*/
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+    text-align:center;
+    font-family:Cursive;
+    position:absolute;
+    margin: auto;
+    top:200;
+       right: 100px;
+       width: 20px;
+       height: 20px;
+
+}
+#tttt7 { /*總價顯示*/
+
+  font-weight: normal;
+  font-size:25px;
+  color:#e60000;
+
+    text-align:center;
+    font-family:Cursive;
+    position:absolute;
+    margin: auto;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    right: :0px;
+    left: 755px;
+
+    top:210px;
+
+}
+#tttt8 {  /*總價數字顯示*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Cursive;
+    position:absolute;
+    font-family:Microsoft JhengHei;
+    position: absolute;
+    margin: auto;
+    right: 0px;
+    width: 300px;
+    height: 50px;
+    left: 500px;
+
+    top:210px;
+
+}
+#tttt9 {  /*管理者1*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Cursive;
+    position: relative;
+    font-family:Microsoft JhengHei;
+    margin: auto;
+    right: 0px;
+    left: 0px;
+    border: 0px;
+    border-collapse:collapse;
+    top:50px;
+
+}
+#tttt10 {  /*管理者2*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Cursive;
+    position:absolute;
+    font-family:Microsoft JhengHei;
+    position: relative;
+    margin: auto;
+    right: 0px;
+    left: 0px;
+    border: 0px;
+    border-collapse:collapse;
+    top:50px;
+
+
+}
+#tttt11 {  /*管理者3*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Cursive;
+    position:absolute;
+    font-family:Microsoft JhengHei;
+    position: relative;
+    margin: auto;
+    right: 0px;
+    left: 0px;
+    border: 0px;
+    border-collapse:collapse;
+    top:50px;
+
+}
+#tttt12 {  /*管理者4*/
+
+    font-weight: normal;
+    font-size:25px;
+    color:#000000;
+    text-align:center;
+    font-family:Cursive;
+    position:absolute;
+    font-family:Microsoft JhengHei;
+    position: absolute;;
+    margin: auto;
+    width: 600px;
+    right: auto;
+    left: 0px;
+    top:0px;
+
+}
+
+#etet10 { /*登入輸入信箱格子*/
+    text-align:normal;
+    font-size:30px;
+    color:#000000;
+
+    font-family:Hero;
+    position: absolute;
+    margin: auto;
+    top:5px;
+    left: 0px;
+    right: 0px;
+    width: 350px;
+    height: 30px;
+}
+#etet11 { /*登入輸入密碼格子*/
+    text-align:normal;
+    font-size:30px;
+    color:#000000;
+
+    font-family:Hero;
+    position: absolute;
+    margin: auto;
+    top:50px;
+    left: 0px;
+    right: 0px;
+    width: 350px;
+    height: 30px;
+}
+#etet12 { /*登入按鈕*/
+    text-align:normal;
+    font-size:30px;
+    color:#000000;
+
+    font-family:Hero;
+    position: absolute;
+    margin: auto;
+    top:100px;
+    left: 0px;
+    right: 0px;
+    width: 350px;
+    height: 30px;
+}
+#etet13 { /*註冊按鈕*/
+    text-align:normal;
+    font-size:30px;
+    color:#000000;
+
+    font-family:Hero;
+    position: absolute;
+    margin: auto;
+    top:150px;
+    left: 0px;
+    right: 0px;
+    width: 350px;
+    height: 30px;
+}
+#etet14 { /*註冊資料空格*/
+    font-size:25px;
+    color:#888888;
+    text-align:center;
+    font-family:Hero;
+    position: absolute;
+    margin: auto;
+    top:200px;
+    left: 0px;
+    right: 0px;
+    width: 500px;
+    height: 30px;
+}
+
+#etet15 {/*新增商品顯示*/
+    text-align:center;
+    font-size:30px;
+    color:#0000BD;
+
+    font-family:Cursive;
+    position: absolute;
+    margin: auto;
+
+    left: 0px;
+    right: 0px;
+    width: 500px;
+    height: 200px;
+}
