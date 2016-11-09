@@ -170,7 +170,7 @@ score<input id="score"  type="text" value="0">
     sprite.position.y = 30;
 
 		THREE.ImageUtils.crossOrigin = '';
-		texture = THREE.ImageUtils.loadTexture('GRASS.JPG');
+		texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/xKikEHV.jpg');
 		texture.wrapS = THREE.RepeatWrapping;
 	for(var i = 0 ;i<10 ;i++){
 		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 50), new THREE.MeshBasicMaterial({map : texture}));
@@ -180,9 +180,11 @@ score<input id="score"  type="text" value="0">
 	}
 
 
-
+	THREE.ImageUtils.crossOrigin = '';
+	texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/yEkO84V.png');
+	texture.wrapS = THREE.RepeatWrapping;
 		for(count=1; count < 20;count++){
-		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,20),new THREE.MeshBasicMaterial({color :0xbf70d4}));
+		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,20),new THREE.MeshBasicMaterial({map : texture}));
 			wall.position.y = 10;
 			if(count%2 != 0){
 				wall.position.x = count*50;
