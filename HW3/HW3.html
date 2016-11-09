@@ -170,7 +170,7 @@ score<input id="score"  type="text" value="0">
     sprite.position.y = 30;
 
 		THREE.ImageUtils.crossOrigin = '';
-		texture = THREE.ImageUtils.loadTexture('grass.jpg');
+		texture = THREE.ImageUtils.loadTexture('GRASS.JPG');
 		texture.wrapS = THREE.RepeatWrapping;
 	for(var i = 0 ;i<10 ;i++){
 		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 50), new THREE.MeshBasicMaterial({map : texture}));
