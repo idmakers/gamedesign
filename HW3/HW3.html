@@ -54,14 +54,38 @@ score<input id="score"  type="text" value="0">
   var sprite;
   var texture;
   var keyboard = new KeyboardState();
-  var height =100;
   var spriteR = 5;
 	var stArray = [];
 	var baseS = 0;
 	var counter = 0;
-
+	var maxvel = 30;
+ var wall ;
   init();
   animate();
+
+	function height (x) {
+	if(x > 40 && x < 55)
+		return 20;
+	if(x > 140 && x < 155)
+		return 20;
+	if(x > 240 && x < 255)
+		return 20;
+	if(x > 340 && x < 355)
+		return 20;
+	if(x > 440 && x < 455)
+		return 20;
+	if(x > 540 && x < 555)
+		return 20;
+	if(x > 640 && x < 655)
+		return 20;
+	if(x > 740 && x < 755)
+		return 20;
+	if(x > 840 && x < 855)
+		return 20;
+
+	  else // x > 0
+	  	return 0
+}
 
 	function setUpStArray() {
 	  for (var i = 0; i < 2; i++) {
@@ -97,7 +121,7 @@ score<input id="score"  type="text" value="0">
     scene.add(camera);
 
     for (var i = 0; i < 10; i++) {
-      var background = new THREE.Mesh(new THREE.PlaneGeometry(100, height),new THREE.MeshBasicMaterial({map : texture}) );
+      var background = new THREE.Mesh(new THREE.PlaneGeometry(100, 100),new THREE.MeshBasicMaterial({map : texture}) );
       background.position.y = 30;
       background.position.x = i * 100;
       scene.add(background);
@@ -145,12 +169,27 @@ score<input id="score"  type="text" value="0">
 	//////////////////////////////////////////////////////////
     sprite.position.y = 30;
 
-    var ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 50), new THREE.MeshBasicMaterial({
-      color: 0xff0000
-    }));
+		THREE.ImageUtils.crossOrigin = '';
+		texture = THREE.ImageUtils.loadTexture('grass.jpg');
+		texture.wrapS = THREE.RepeatWrapping;
+	for(var i = 0 ;i<10 ;i++){
+		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 50), new THREE.MeshBasicMaterial({map : texture}));
     scene.add(ground);
     ground.position.y = -25;
-    ground.position.x = 450; // this is WRong!!!
+    ground.position.x = i*100;
+	}
+
+
+
+		for(count=1; count < 20;count++){
+		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,20),new THREE.MeshBasicMaterial({color :0xbf70d4}));
+			wall.position.y = 10;
+			if(count%2 != 0){
+				wall.position.x = count*50;
+				scene.add(wall);
+			}
+
+		}
 
     window.addEventListener('resize', onWindowResize, false);
     // window.addEventListener('mousedown', onDocumentMouseDown, false);
@@ -186,7 +225,10 @@ score<input id="score"  type="text" value="0">
 
     keyboard.update();
     if (keyboard.down('right')) {
-      vel.x += 10;
+      vel.x += 1;
+			if(vel.x > maxvel){
+				vel.x = maxvel;
+			}
     }
     if (keyboard.down('space')) {
       vel.y += 90;
@@ -202,6 +244,8 @@ score<input id="score"  type="text" value="0">
 		else if(sprite.position.x <= 2){
 			camera.position.x = 0;
 		}
+
+
 
 
      $("#score").val(Math.floor(camera.position.x));
@@ -230,7 +274,7 @@ score<input id="score"  type="text" value="0">
     // bounce back
     if (pos.y <= spriteR) {
       //pos.y = 0;
-      vel.y *= -0.83;
+      vel.y = 0;
     }
     if (pos.y > height) {
       //pos.y = 0;
@@ -240,10 +284,31 @@ score<input id="score"  type="text" value="0">
 				pos.x = -47 + spriteR;
 				vel.x = 0;
 		}
-		if (pos.x > 950 ){
+		if (pos.x >950 ){
 			vel.x = 0;
 			pos.x = 950-(spriteR);
 		}
+
+	if (pos.y <= spriteR + height (pos.x))
+	{
+		pos.y = spriteR + height(pos.x);
+		vel.y *= -.3;
+	}
+		if (pos.y <= spriteR+height(pos.x))
+{
+	// if contact, add contact force
+	force.add(new THREE.Vector3(0, 90, 0));
+
+	// determine whether it is possible to make the horizontal move
+	var sign = (vel.x) > 0 ? +1 : -1;
+	if(height(pos.x) < height(pos.x + 1*sign))
+	{
+		vel.x = 0;
+	}
+}
+
+
+
 
 
 
