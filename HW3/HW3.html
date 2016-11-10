@@ -65,23 +65,23 @@ score<input id="score"  type="text" value="0">
 
 	function height (x) {
 	if(x > 40 && x < 55)
-		return 20;
+		return 30;
 	if(x > 140 && x < 155)
-		return 20;
+		return 30;
 	if(x > 240 && x < 255)
-		return 20;
+		return 30;
 	if(x > 340 && x < 355)
-		return 20;
+		return 30;
 	if(x > 440 && x < 455)
-		return 20;
+		return 30;
 	if(x > 540 && x < 555)
-		return 20;
+		return 30;
 	if(x > 640 && x < 655)
-		return 20;
+		return 30;
 	if(x > 740 && x < 755)
-		return 20;
+		return 30;
 	if(x > 840 && x < 855)
-		return 20;
+		return 30;
 
 	  else // x > 0
 	  	return 0
@@ -181,11 +181,11 @@ score<input id="score"  type="text" value="0">
 
 
 	THREE.ImageUtils.crossOrigin = '';
-	texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/yEkO84V.png');
+	texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/ytOnII3.png');
 	texture.wrapS = THREE.RepeatWrapping;
 		for(count=1; count < 20;count++){
-		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,20),new THREE.MeshBasicMaterial({map : texture}));
-			wall.position.y = 10;
+		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,30),new THREE.MeshBasicMaterial({map : texture}));
+			wall.position.y = 15;
 			if(count%2 != 0){
 				wall.position.x = count*50;
 				scene.add(wall);
