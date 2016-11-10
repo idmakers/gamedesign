@@ -3,11 +3,11 @@
 <style >
 	#info {
   position: absolute;
-  top: 0px;
+	margin: auto;
+	right: 10px;
 	font-size:30px;
 	font-family:Cursive;
   width: 100%;
-  padding: 10px;
   text-align: center;
   color: #ff006b
 }
@@ -18,9 +18,8 @@
     font-family:Cursive;
     position: absolute;
     margin: auto;
-    right: 0px;
-    left: 0px;
-    right: 0px;
+    right: 100px;
+		top :10px;
     width: 100px;
     height: 50px;
 }
@@ -30,7 +29,7 @@ body {
 </style>
 
 <audio autoplay loop>
-<!--<source src="1234.wav" type="audio/wav">-->
+<source src="1234.wav" type="audio/wav">
 </audio>
 <link rel="stylesheet" type="text/css" href="../123.css" />
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -38,7 +37,7 @@ body {
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 <script type="text/javascript"></script>
 <div id="info">
-score<input id="score"  type="text" value="0">
+<input id="score"  type="text" value="0">
 </div>
 <script >
 
@@ -59,11 +58,18 @@ score<input id="score"  type="text" value="0">
 	var baseS = 0;
 	var counter = 0;
 	var maxvel = 30;
- var wall ;
+	var minvel = -30;
+  var wall ;
   init();
   animate();
 
 	function height (x) {
+	if(x > 195&& x < 240)
+			return 20;
+	if(x > 255&& x <295)
+			return 20;
+	if(x > 295&& x <400)
+			return 30;
 	if(x > 40 && x < 55)
 		return 30;
 	if(x > 140 && x < 155)
@@ -178,13 +184,20 @@ score<input id="score"  type="text" value="0">
     ground.position.y = -25;
     ground.position.x = i*100;
 	}
-
-
-	THREE.ImageUtils.crossOrigin = '';
-	texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/ytOnII3.png');
-	texture.wrapS = THREE.RepeatWrapping;
+	for(var i = 5 ;i<8 ;i++){
+		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), new THREE.MeshBasicMaterial({map : texture}));
+		scene.add(ground);
+		ground.position.y = 10;
+		ground.position.x = i*50;
+	}
+	for(var i = 7 ;i<8;i++){
+		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), new THREE.MeshBasicMaterial({map : texture}));
+		scene.add(ground);
+		ground.position.y = 20;
+		ground.position.x = i*50;
+	}
 		for(count=1; count < 20;count++){
-		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,30),new THREE.MeshBasicMaterial({map : texture}));
+		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,30),new THREE.MeshBasicMaterial({color:0x1bde17}));
 			wall.position.y = 15;
 			if(count%2 != 0){
 				wall.position.x = count*50;
@@ -227,15 +240,27 @@ score<input id="score"  type="text" value="0">
 
     keyboard.update();
     if (keyboard.down('right')) {
-      vel.x += 1;
+      vel.x += 5;
 			if(vel.x > maxvel){
 				vel.x = maxvel;
 			}
     }
+		if (keyboard.down('left')) {
+			vel.x -= 5;
+			if(vel.x < minvel){
+				vel.x = minvel;
+			}
+		}
     if (keyboard.down('space')) {
       vel.y += 90;
       snd.play();
     }
+		if(vel.x < 0){
+			sprite.rotation.y = Math.PI;
+		}
+		else{
+			sprite.rotation.y = 2*Math.PI;
+		}
 
     if (sprite.position.x <=900&& sprite.position.x > 2) {
       camera.position.x = sprite.position.x
@@ -290,7 +315,7 @@ score<input id="score"  type="text" value="0">
 			vel.x = 0;
 			pos.x = 950-(spriteR);
 		}
-
+//bonce back
 	if (pos.y <= spriteR + height (pos.x))
 	{
 		pos.y = spriteR + height(pos.x);
@@ -305,7 +330,14 @@ score<input id="score"  type="text" value="0">
 	var sign = (vel.x) > 0 ? +1 : -1;
 	if(height(pos.x) < height(pos.x + 1*sign))
 	{
-		vel.x = 0;
+		alert("you died  !");
+		var x;
+	 if (confirm("click to reload!") == true) {
+			location.reload();
+	 } else {
+		 	location.reload();
+	 }
+	 document.getElementById("demo").innerHTML = x;
 	}
 }
 
