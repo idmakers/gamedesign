@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<style >
+	#info {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+body {
+  overflow: hidden;
+}
+</style>
+
+<head>
+  <title></title>
+<div id="info">HW4
+  <br></div>
+</head>
+
+<body>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+<script src="https://idmakers.github.io/stats.js//build/stats.min.js"></script>
+
+<script >
+var camera, scene, renderer, controls;
+var puck;
+var cube;
+var raycaster;
+var mouse = new THREE.Vector2();
+var pickables = [];
+var angle = 0;
+var agent1 ,agent2 ,agent3;
+// steer related
+var target = new THREE.Vector3 ();
+var targetMesh;
+
+
+//var power;
+var mass=1;
+var clock = new THREE.Clock();
+
+var Agent = function(mesh, initPos) {
+  this.pos = new THREE.Vector3();
+  if (initPos) this.pos.copy(initPos);
+
+  this.vel = new THREE.Vector3();
+  this.force = new THREE.Vector3();
+  this.target = new THREE.Vector3();
+  this.angle = 0
+  this.mesh = mesh;
+  this.maxSpeed = 60;
+  this.maxForce = 60;
+
+  this.setTarget = function(target) {
+    this.target.copy(target);
+  }
+
+
+  this.update = function(dt) {
+    // compute force
+    this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
+
+    // force clamping
+    if (this.force.length() > this.maxForce)
+      this.force.setLength(this.maxForce);
+    this.vel.add(this.force.clone().multiplyScalar(dt));
+
+    // velocity clamping
+    if (this.vel.length() > this.maxSpeed)
+      this.vel.setLength(this.maxSpeed);
+    this.pos.add(this.vel.clone().multiplyScalar(dt));
+
+    if (this.vel.length() > 0.001) {
+      this.angle = Math.atan2(-this.vel.z, this.vel.x);
+    }
+    this.mesh.position.copy(this.pos);
+    this.mesh.rotation.y = this.angle;
+
+    // catch handling
+    if (this.pos.distanceTo(this.target) < 2) {
+      this.vel.set(0, 0, 0);
+      angle = Math.random() * Math.PI * 2;
+		}
+
+  }
+}
+
+init();
+animate();
+
+function init() {
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  camera.position.z = 500;
+  scene.add(camera);
+
+  var gridXZ = new THREE.GridHelper(200, 10);
+  gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+  scene.add(gridXZ);
+
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  document.body.appendChild(renderer.domElement);
+
+	var geometry = new THREE.BoxGeometry(15, 2, 5);
+	var material = new THREE.MeshNormalMaterial();
+	cube = new THREE.Mesh(geometry, material);
+	scene.add(cube);
+	agent1 = new Agent(cube , new THREE.Vector3(80,0,0));
+	var geometry = new THREE.BoxGeometry(15, 2, 5);
+	var material = new THREE.MeshNormalMaterial();
+	cube = new THREE.Mesh(geometry, material);
+	scene.add(cube);
+	agent2 = new Agent(cube , new THREE.Vector3(0,0,80));
+	var geometry = new THREE.BoxGeometry(15, 2, 5);
+	var material = new THREE.MeshNormalMaterial();
+	cube = new THREE.Mesh(geometry, material);
+	scene.add(cube);
+	agent3 = new Agent(cube , new THREE.Vector3(80,0,80));
+
+
+
+	/////////////////////////////////////////////////////////////////////
+	plane = new THREE.Mesh (new THREE.PlaneGeometry(400,400), new THREE.MeshBasicMaterial({visible:false}));
+  scene.add (plane);
+  plane.rotation.x = -Math.PI/2;
+	pickables = [plane];
+
+	puck = new THREE.Mesh (new THREE.CylinderGeometry (5,5,2,20), new THREE.MeshNormalMaterial());
+  scene.add (puck);
+  pos = new THREE.Vector3();
+  vel = new THREE.Vector3(100,0,0);
+  force = new THREE.Vector3();
+
+  target = puck.position;
+
+  raycaster = new THREE.Raycaster();
+  document.addEventListener('mousedown', onDocumentMouseDown, false);
+}
+
+
+function onDocumentMouseDown(event) {
+
+  // PICKING DETAILS:
+  // convert mouse.xy = [-1,1]^2 (NDC)
+  // unproject (mouse.xy, 1) to a point on the far plane (in world coordinate)
+  // set raycaster (origin, direction)
+  // find intersection objects, (closest first)
+  // each record as
+  // [ { distance, point, face, faceIndex, object }, ... ]
+
+  event.preventDefault();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // find intersections
+  raycaster.setFromCamera(mouse, camera);
+  var intersects = raycaster.intersectObjects(pickables);
+  if (intersects.length > 0) {
+		puck.position.copy (intersects[0].point);
+	}
+
+}
+
+
+
+function animate() {
+
+  var dt = clock.getDelta();  // delta-time
+  agent1.update(dt);
+	agent2.update(dt);
+	agent3.update(dt);
+  // copy to cylinder
+	
+
+  agent1.setTarget(target);
+	agent2.setTarget(target);
+	agent3.setTarget(target);
+  puck.position.copy(target);
+
+  controls.update();
+  requestAnimationFrame(animate);
+  render();
+  }
+
+  function render() {
+  renderer.render(scene, camera);
+  }
+
+
+</script>
+</body>
+
+</html>
