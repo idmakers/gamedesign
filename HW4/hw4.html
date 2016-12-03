@@ -52,7 +52,7 @@ var Agent = function(mesh, initPos) {
   this.vel = new THREE.Vector3();
   this.force = new THREE.Vector3();
   this.target = new THREE.Vector3();
-  this.angle = 0
+  this.angle = 0;
   this.mesh = mesh;
   this.maxSpeed = 60;
   this.maxForce = 60;
@@ -116,20 +116,18 @@ function init() {
 	var geometry = new THREE.BoxGeometry(15, 2, 5);
 	var material = new THREE.MeshNormalMaterial();
 	cube = new THREE.Mesh(geometry, material);
-	agent.push(new Agent(cube,new THREE.Vector3(100,0,0)));
-
+	agents.push(new Agent(cube,new THREE.Vector3(100,0,0)));
 		var geometry = new THREE.BoxGeometry(15, 2, 5);
 		var material = new THREE.MeshNormalMaterial();
 		cube = new THREE.Mesh(geometry, material);
-	agent.push (new Agent(cube,new THREE.Vector3(0,0,100)));
+	agents.push (new Agent(cube,new THREE.Vector3(0,0,100)));
 		var geometry = new THREE.BoxGeometry(15, 2, 5);
 		cube = new THREE.Mesh(geometry, material);
 		var material = new THREE.MeshNormalMaterial();
-	agent.push (new Agent(cube,new THREE.Vector3(100,0,100)));
+	agents.push (new Agent(cube,new THREE.Vector3(100,0,100)));
 
-
- for (var i = 0; i < agent.length; i++) {
- scene.add(agent[i].mesh);
+ for (var i = 0; i < agents.length; i++) {
+ scene.add(agents[i].mesh);
  }
 	/////////////////////////////////////////////////////////////////////
 	plane = new THREE.Mesh (new THREE.PlaneGeometry(400,400), new THREE.MeshBasicMaterial({visible:false}));
@@ -178,9 +176,9 @@ function onDocumentMouseDown(event) {
 function animate() {
 
   var dt = clock.getDelta();  // delta-time
-for (var i = 0; i < agent.length; i++) {
-	agent[i].update(dt);
-	agent[i].setTarget(target);
+for (var i = 0; i < agents.length; i++) {
+	agents[i].update(dt);
+	agents[i].setTarget(target);
 }
 
   puck.position.copy(target);
