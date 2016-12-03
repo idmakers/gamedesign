@@ -36,7 +36,7 @@ var raycaster;
 var mouse = new THREE.Vector2();
 var pickables = [];
 var angle = 0;
-var agent1 ,agent2 ,agent3;
+var agent = []
 // steer related
 var target = new THREE.Vector3 ();
 var targetMesh;
@@ -49,7 +49,6 @@ var clock = new THREE.Clock();
 var Agent = function(mesh, initPos) {
   this.pos = new THREE.Vector3();
   if (initPos) this.pos.copy(initPos);
-
   this.vel = new THREE.Vector3();
   this.force = new THREE.Vector3();
   this.target = new THREE.Vector3();
@@ -117,21 +116,21 @@ function init() {
 	var geometry = new THREE.BoxGeometry(15, 2, 5);
 	var material = new THREE.MeshNormalMaterial();
 	cube = new THREE.Mesh(geometry, material);
-	scene.add(cube);
-	agent1 = new Agent(cube , new THREE.Vector3(80,0,0));
-	var geometry = new THREE.BoxGeometry(15, 2, 5);
-	var material = new THREE.MeshNormalMaterial();
-	cube = new THREE.Mesh(geometry, material);
-	scene.add(cube);
-	agent2 = new Agent(cube , new THREE.Vector3(0,0,80));
-	var geometry = new THREE.BoxGeometry(15, 2, 5);
-	var material = new THREE.MeshNormalMaterial();
-	cube = new THREE.Mesh(geometry, material);
-	scene.add(cube);
-	agent3 = new Agent(cube , new THREE.Vector3(80,0,80));
+	agent.push(new Agent(cube,new THREE.Vector3(100,0,0)));
+
+		var geometry = new THREE.BoxGeometry(15, 2, 5);
+		var material = new THREE.MeshNormalMaterial();
+		cube = new THREE.Mesh(geometry, material);
+	agent.push (new Agent(cube,new THREE.Vector3(0,0,100)));
+		var geometry = new THREE.BoxGeometry(15, 2, 5);
+		cube = new THREE.Mesh(geometry, material);
+		var material = new THREE.MeshNormalMaterial();
+	agent.push (new Agent(cube,new THREE.Vector3(100,0,100)));
 
 
-
+ for (var i = 0; i < agent.length; i++) {
+ scene.add(agent[i].mesh);
+ }
 	/////////////////////////////////////////////////////////////////////
 	plane = new THREE.Mesh (new THREE.PlaneGeometry(400,400), new THREE.MeshBasicMaterial({visible:false}));
   scene.add (plane);
@@ -179,15 +178,11 @@ function onDocumentMouseDown(event) {
 function animate() {
 
   var dt = clock.getDelta();  // delta-time
-  agent1.update(dt);
-	agent2.update(dt);
-	agent3.update(dt);
-  // copy to cylinder
-	
+for (var i = 0; i < agent.length; i++) {
+	agent[i].update(dt);
+	agent[i].setTarget(target);
+}
 
-  agent1.setTarget(target);
-	agent2.setTarget(target);
-	agent3.setTarget(target);
   puck.position.copy(target);
 
   controls.update();
@@ -195,7 +190,7 @@ function animate() {
   render();
   }
 
-  function render() {
+function render() {
   renderer.render(scene, camera);
   }
 
