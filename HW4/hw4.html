@@ -40,11 +40,17 @@ var agents = []
 // steer related
 var target = new THREE.Vector3 ();
 var targetMesh;
-
+var obCen1 = new THREE.Vector3(0,0,-100);
+var obCen2 = new THREE.Vector3(100,0,0);
+var obCen3 = new THREE.Vector3(-100,0,0);
+var obCen4 = new THREE.Vector3(0,0,-100);
+var obRad = 50;
+var group = new THREE.Object3D();
 
 //var power;
 var mass=1;
 var clock = new THREE.Clock();
+
 
 var Agent = function(mesh, initPos) {
   this.pos = new THREE.Vector3();
@@ -62,34 +68,96 @@ var Agent = function(mesh, initPos) {
   }
 
 
-  this.update = function(dt) {
+
     // compute force
-    this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
+		this.update = function(dt) {
+	    // compute force
+	    this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
 
-    // force clamping
-    if (this.force.length() > this.maxForce)
-      this.force.setLength(this.maxForce);
-    this.vel.add(this.force.clone().multiplyScalar(dt));
+			// collision avoidance
+	    // (for each obstacle)
+	    var tmp = obCen1.clone().sub(this.pos);
+	    var tmpProj = tmp.clone().projectOnVector(this.vel);
 
-    // velocity clamping
-    if (this.vel.length() > this.maxSpeed)
-      this.vel.setLength(this.maxSpeed);
-    this.pos.add(this.vel.clone().multiplyScalar(dt));
+	    //console.log (tmp.dot(this.vel));
 
-    if (this.vel.length() > 0.001) {
-      this.angle = Math.atan2(-this.vel.z, this.vel.x);
-    }
-    this.mesh.position.copy(this.pos);
-    this.mesh.rotation.y = this.angle;
+	    if (tmp.dot(this.vel) > 0) {
+	    	if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
 
-    // catch handling
-    if (this.pos.distanceTo(this.target) < 2) {
-      this.vel.set(0, 0, 0);
-      angle = Math.random() * Math.PI * 2;
-		}
+	      	if (tmpProj.length() < 5 *this.vel.length()) {
+	    			this.force.add (tmpProj.clone().sub(tmp).multiplyScalar(2));
+	        }
+	      }
+	    }
+			var tmp = obCen2.clone().sub(this.pos);
+			var tmpProj = tmp.clone().projectOnVector(this.vel);
 
-  }
-}
+			//console.log (tmp.dot(this.vel));
+
+			if (tmp.dot(this.vel) > 0) {
+				if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
+
+					if (tmpProj.length() < 5 *this.vel.length()) {
+						this.force.add (tmpProj.clone().sub(tmp).multiplyScalar(2));
+					}
+				}
+			}
+			var tmp = obCen3.clone().sub(this.pos);
+			var tmpProj = tmp.clone().projectOnVector(this.vel);
+
+			//console.log (tmp.dot(this.vel));
+
+			if (tmp.dot(this.vel) > 0) {
+				if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
+
+					if (tmpProj.length() < 5 *this.vel.length()) {
+						this.force.add (tmpProj.clone().sub(tmp).multiplyScalar(2));
+					}
+				}
+			}
+			var tmp = obCen4.clone().sub(this.pos);
+			var tmpProj = tmp.clone().projectOnVector(this.vel);
+
+			//console.log (tmp.dot(this.vel));
+
+			if (tmp.dot(this.vel) > 0) {
+				if (tmpProj.clone().sub(tmp).length() < obRad + 10) {
+
+					if (tmpProj.length() < 5 *this.vel.length()) {
+						this.force.add (tmpProj.clone().sub(tmp).multiplyScalar(2));
+					}
+				}
+			}
+
+			// force clamping
+	    if (this.force.length() > this.maxForce)
+	      this.force.setLength(this.maxForce);
+	    this.vel.add(this.force.clone().multiplyScalar(dt));
+
+	    // velocity clamping
+	    if (this.vel.length() > this.maxSpeed)
+	      this.vel.setLength(this.maxSpeed);
+	    this.pos.add(this.vel.clone().multiplyScalar(dt));
+
+	    if (this.vel.length() > 0.001) {
+	      this.angle = Math.atan2(-this.vel.z, this.vel.x);
+	    }
+	    this.mesh.position.copy(this.pos);
+	    this.mesh.rotation.y = this.angle;
+
+	    // catch handling
+	    if (this.pos.distanceTo(this.target) < 2) {
+	      this.vel.set(0, 0, 0);
+	      angle = Math.random() * Math.PI * 2;
+			}
+
+
+
+	  }
+	}
+
+
+
 
 init();
 animate();
@@ -129,6 +197,25 @@ function init() {
  for (var i = 0; i < agents.length; i++) {
  scene.add(agents[i].mesh);
  }
+
+	 var ob1 = new THREE.Mesh (new THREE.CircleGeometry (obRad,20));
+	 ob1.rotation.x = -Math.PI/2;
+	 ob1.position.z= -100;
+	 var ob2 = new THREE.Mesh (new THREE.CircleGeometry (obRad,20));
+	 ob2.rotation.x = -Math.PI/2;
+	 ob2.position.z= 100;
+	 var ob3 = new THREE.Mesh (new THREE.CircleGeometry (obRad,20));
+	 ob3.rotation.x = -Math.PI/2;
+	 ob3.position.x= -100;
+	 var ob4 = new THREE.Mesh (new THREE.CircleGeometry (obRad,20));
+	 ob4.rotation.x = -Math.PI/2;
+	 ob4.position.x= 100;
+	 group.add(ob1);
+	 group.add(ob2);
+	 group.add(ob3);
+	 group.add(ob4);
+	 scene.add(group);
+
 	/////////////////////////////////////////////////////////////////////
 	plane = new THREE.Mesh (new THREE.PlaneGeometry(400,400), new THREE.MeshBasicMaterial({visible:false}));
   scene.add (plane);
