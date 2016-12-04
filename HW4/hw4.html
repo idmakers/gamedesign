@@ -60,13 +60,23 @@ var Agent = function(mesh, initPos) {
   this.target = new THREE.Vector3();
   this.angle = 0;
   this.mesh = mesh;
+	this.nbhd = [];
   this.maxSpeed = 60;
   this.maxForce = 60;
 
   this.setTarget = function(target) {
     this.target.copy(target);
   }
-
+ this.cohesion = function(agents) {
+  	// set pos as the average of my nbhd.pos
+    var total = 0 , avg = 0;
+    for(var i = 0; i < this.nbhd.length; i++)
+    {
+    	total = total + this.nbhd[i].pos;
+    }
+    avg = total/this.nbhd.length;
+    this.newpos = avg;
+  }
 
 
     // compute force
@@ -75,7 +85,8 @@ var Agent = function(mesh, initPos) {
 	    this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
 
 			// collision avoidance
-	    // (for each obstacle)
+  	// (for each obstacle)
+
 	    var tmp = obCen1.clone().sub(this.pos);
 	    var tmpProj = tmp.clone().projectOnVector(this.vel);
 
@@ -155,6 +166,21 @@ var Agent = function(mesh, initPos) {
 
 	  }
 	}
+	function computeNbhd() {
+	var n = agents.length;  // number of agents
+  var R = 10;
+
+  // test it with n = 5
+	for (var i = 0; i < n-1; i++) {
+  	for (var j = i+1; j < n; j++) {
+    	if (Math.abs(agents[i].pos - agents[j].pos) < R) {
+      	agents[i].nbhd.push (agents[j]);
+      	agents[j].nbhd.push (agents[i]);
+      }
+    }
+  }
+
+}
 
 
 
@@ -263,10 +289,16 @@ function onDocumentMouseDown(event) {
 function animate() {
 
   var dt = clock.getDelta();  // delta-time
+	computeNbhd();
 for (var i = 0; i < agents.length; i++) {
 	agents[i].update(dt);
-	agents[i].setTarget(target);
+agents[i].cohesion();
+agents[i].setTarget(target);
 }
+
+
+
+
 
   puck.position.copy(target);
 
