@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html>
-<style >
+<style>
 	#info {
-  position: absolute;
-	margin: auto;
-	right: 10px;
-	font-size:30px;
-	font-family:Cursive;
-  width: 100%;
-  text-align: center;
-  color: #ff006b
-}
-#score {
-    text-align:center;
-    font-size:30px;
-    color:#86a15b;
-    font-family:Cursive;
-    position: absolute;
-    margin: auto;
-    right: 10px;
-		top :10px;
-    width: 100px;
-    height: 50px;
-}
-body {
-  overflow: hidden;
-}
+		position: absolute;
+		margin: auto;
+		right: 10px;
+		font-size: 30px;
+		font-family: Cursive;
+		width: 100%;
+		text-align: center;
+		color: #ff006b
+	}
+
+	#score {
+		text-align: center;
+		font-size: 30px;
+		color: #86a15b;
+		font-family: Cursive;
+		position: absolute;
+		margin: auto;
+		right: 10px;
+		top: 10px;
+		width: 100px;
+		height: 50px;
+	}
+
+	body {
+		overflow: hidden;
+	}
 </style>
 
 <audio autoplay loop>
@@ -37,334 +39,336 @@ body {
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 <script type="text/javascript"></script>
 <div id="info">
-<input id="score"  type="text" value="0">
+	<input id="score" type="text" value="0">
 </div>
-<script >
-
-
-  var snd = new Audio("http://static1.grsites.com/archive/sounds/comic/comic010.mp3");
-  var camera, scene, renderer;
-  var satellite, angle = 0;
-  var mousePoint;
-  var mouse = new THREE.Vector2();
-  //var stats;
-  var pos, vel, force;
-  var clock = new THREE.Clock();
-  var sprite;
-  var texture;
-  var keyboard = new KeyboardState();
-  var spriteR = 5;
+<script>
+	var snd = new Audio("http://static1.grsites.com/archive/sounds/comic/comic010.mp3");
+	var camera, scene, renderer;
+	var satellite, angle = 0;
+	var mousePoint;
+	var mouse = new THREE.Vector2();
+	//var stats;
+	var pos, vel, force;
+	var clock = new THREE.Clock();
+	var sprite;
+	var texture;
+	var keyboard = new KeyboardState();
+	var spriteR = 5;
 	var stArray = [];
 	var baseS = 0;
 	var counter = 0;
 	var maxvel = 30;
 	var minvel = -30;
-  var wall ;
-  init();
-  animate();
+	var wall;
+	init();
+	animate();
 
-	function height (x) {
-	if(x > 195&& x < 240)
+	function height(x) {
+		if (x > 195 && x < 240)
 			return 20;
-	if(x > 255&& x <295)
+		if (x > 255 && x < 295)
 			return 20;
-	if(x > 295&& x <400)
+		if (x > 295 && x < 400)
 			return 30;
-	if(x > 40 && x < 55)
-		return 30;
-	if(x > 140 && x < 155)
-		return 30;
-	if(x > 240 && x < 255)
-		return 30;
-	if(x > 340 && x < 355)
-		return 30;
-	if(x > 440 && x < 455)
-		return 30;
-	if(x > 540 && x < 555)
-		return 30;
-	if(x > 640 && x < 655)
-		return 30;
-	if(x > 740 && x < 755)
-		return 30;
-	if(x > 840 && x < 855)
-		return 30;
+		if (x > 40 && x < 55)
+			return 30;
+		if (x > 140 && x < 155)
+			return 30;
+		if (x > 240 && x < 255)
+			return 30;
+		if (x > 340 && x < 355)
+			return 30;
+		if (x > 440 && x < 455)
+			return 30;
+		if (x > 540 && x < 555)
+			return 30;
+		if (x > 640 && x < 655)
+			return 30;
+		if (x > 740 && x < 755)
+			return 30;
+		if (x > 840 && x < 855)
+			return 30;
 
-	  else // x > 0
-	  	return 0
-}
-
-	function setUpStArray() {
-	  for (var i = 0; i < 2; i++) {
-	    var row = [];
-	    for (var j = 0; j < 6; j++)
-	      row.push(new THREE.Vector2(j * 0.125, 1 - 0.85 * i));
-	    stArray.push(row);
-	  }
+		else // x > 0
+			return 0
 	}
 
-  function init() {
-    renderer = new THREE.WebGLRenderer({
-      antialias: true
-    });
+	function setUpStArray() {
+		for (var i = 0; i < 2; i++) {
+			var row = [];
+			for (var j = 0; j < 6; j++)
+				row.push(new THREE.Vector2(j * 0.125, 1 - 0.85 * i));
+			stArray.push(row);
+		}
+	}
+
+	function init() {
+		renderer = new THREE.WebGLRenderer({
+			antialias: true
+		});
 
 
-	// loading texture from imgur.com
-	THREE.ImageUtils.crossOrigin = '';
-	texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/2O5CXyh.jpg');
-	texture.wrapS = THREE.RepeatWrapping;
-	// setting up texMat
+		// loading texture from imgur.com
+		THREE.ImageUtils.crossOrigin = '';
+		texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/2O5CXyh.jpg');
+		texture.wrapS = THREE.RepeatWrapping;
+		// setting up texMat
 
-    pos = new THREE.Vector3(-20, 40, 0);
-    vel = new THREE.Vector3(10, 0, 0);
-    //force = new THREE.Vector3(0, -90, 0);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x888888);
-    document.body.appendChild(renderer.domElement);
+		pos = new THREE.Vector3(-20, 40, 0);
+		vel = new THREE.Vector3(10, 0, 0);
+		//force = new THREE.Vector3(0, -90, 0);
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.setClearColor(0x888888);
+		document.body.appendChild(renderer.domElement);
 
-    scene = new THREE.Scene();
-    camera = new THREE.OrthographicCamera(-50, 50, 80, -20, -10, 100);
-    camera.position.z = 10;
-    scene.add(camera);
+		scene = new THREE.Scene();
+		camera = new THREE.OrthographicCamera(-50, 50, 80, -20, -10, 100);
+		camera.position.z = 10;
+		scene.add(camera);
 
-    for (var i = 0; i < 10; i++) {
-      var background = new THREE.Mesh(new THREE.PlaneGeometry(100, 100),new THREE.MeshBasicMaterial({map : texture}) );
-      background.position.y = 30;
-      background.position.x = i * 100;
-      scene.add(background);
-    }
+		for (var i = 0; i < 10; i++) {
+			var background = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshBasicMaterial({
+				map: texture
+			}));
+			background.position.y = 30;
+			background.position.x = i * 100;
+			scene.add(background);
+		}
 
 
-    ////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////
 		setUpStArray();
 
-  // loading texture from imgur.com
-  THREE.ImageUtils.crossOrigin = '';
-  texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/ShyHLax.png');
-  texture.wrapS = THREE.RepeatWrapping;
+		// loading texture from imgur.com
+		THREE.ImageUtils.crossOrigin = '';
+		texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/ShyHLax.png');
+		texture.wrapS = THREE.RepeatWrapping;
 
-  // setting up texMat
-  var texMat = new THREE.MeshBasicMaterial({
-    map: texture,
-    transparent: true,  // cutout texture: set transparent: true
-    side: THREE.DoubleSide
-  });
+		// setting up texMat
+		var texMat = new THREE.MeshBasicMaterial({
+			map: texture,
+			transparent: true, // cutout texture: set transparent: true
+			side: THREE.DoubleSide
+		});
 
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(
-    new THREE.Vector3(-5, -5, 0),
-    new THREE.Vector3(5, -5, 0),
-    new THREE.Vector3(5,5, 0),
-    new THREE.Vector3(-5,5, 0)
-  );
+		var geometry = new THREE.Geometry();
+		geometry.vertices.push(
+			new THREE.Vector3(-5, -5, 0),
+			new THREE.Vector3(5, -5, 0),
+			new THREE.Vector3(5, 5, 0),
+			new THREE.Vector3(-5, 5, 0)
+		);
 
-  var face;
-  face = new THREE.Face3(0, 1, 2);
-  geometry.faces.push(face);
-  face = new THREE.Face3(0, 2, 3);
-  geometry.faces.push(face);
-///////////////////////////////////////test///////////////////////
-  geometry.faceVertexUvs[0].push([stArray[1][0], stArray[1][1], stArray[0][1]]);
-  geometry.faceVertexUvs[0].push([stArray[1][0], stArray[0][1], stArray[0][0]]);
+		var face;
+		face = new THREE.Face3(0, 1, 2);
+		geometry.faces.push(face);
+		face = new THREE.Face3(0, 2, 3);
+		geometry.faces.push(face);
+		///////////////////////////////////////test///////////////////////
+		geometry.faceVertexUvs[0].push([stArray[1][0], stArray[1][1], stArray[0][1]]);
+		geometry.faceVertexUvs[0].push([stArray[1][0], stArray[0][1], stArray[0][0]]);
 
-  geometry.computeBoundingSphere();
-  geometry.computeFaceNormals();
-  geometry.computeVertexNormals();
+		geometry.computeBoundingSphere();
+		geometry.computeFaceNormals();
+		geometry.computeVertexNormals();
 
-  sprite = new THREE.Mesh(geometry, texMat);
-  scene.add(sprite);
-	//////////////////////////////////////////////////////////
-    sprite.position.y = 30;
+		sprite = new THREE.Mesh(geometry, texMat);
+		scene.add(sprite);
+		//////////////////////////////////////////////////////////
+		sprite.position.y = 30;
 
 		THREE.ImageUtils.crossOrigin = '';
 		texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/2nA5c3q.png');
 		texture.wrapS = THREE.RepeatWrapping;
-	for(var i = 0 ;i<10 ;i++){
-		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 50), new THREE.MeshBasicMaterial({map : texture}));
-    scene.add(ground);
-    ground.position.y = -25;
-    ground.position.x = i*100;
-	}
-	for(var i = 5 ;i<8 ;i++){
-		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), new THREE.MeshBasicMaterial({map : texture}));
-		scene.add(ground);
-		ground.position.y = 10;
-		ground.position.x = i*50;
-	}
-	for(var i = 7 ;i<8;i++){
-		var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), new THREE.MeshBasicMaterial({map : texture}));
-		scene.add(ground);
-		ground.position.y = 20;
-		ground.position.x = i*50;
-	}
-		for(count=1; count < 20;count++){
-		wall = new THREE.Mesh(new THREE.PlaneGeometry(10,30),new THREE.MeshBasicMaterial({color:0x1bde17}));
+		for (var i = 0; i < 10; i++) {
+			var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 50), new THREE.MeshBasicMaterial({
+				map: texture
+			}));
+			scene.add(ground);
+			ground.position.y = -25;
+			ground.position.x = i * 100;
+		}
+		for (var i = 5; i < 8; i++) {
+			var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), new THREE.MeshBasicMaterial({
+				map: texture
+			}));
+			scene.add(ground);
+			ground.position.y = 10;
+			ground.position.x = i * 50;
+		}
+		for (var i = 7; i < 8; i++) {
+			var ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), new THREE.MeshBasicMaterial({
+				map: texture
+			}));
+			scene.add(ground);
+			ground.position.y = 20;
+			ground.position.x = i * 50;
+		}
+		for (count = 1; count < 20; count++) {
+			wall = new THREE.Mesh(new THREE.PlaneGeometry(10, 30), new THREE.MeshBasicMaterial({
+				color: 0x1bde17
+			}));
 			wall.position.y = 15;
-			if(count%2 != 0){
-				wall.position.x = count*50;
+			if (count % 2 != 0) {
+				wall.position.x = count * 50;
 				scene.add(wall);
 			}
 
 		}
 
-    window.addEventListener('resize', onWindowResize, false);
-    // window.addEventListener('mousedown', onDocumentMouseDown, false);
-  }
+		window.addEventListener('resize', onWindowResize, false);
+		// window.addEventListener('mousedown', onDocumentMouseDown, false);
+	}
 
-  function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHei50t;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
+	function onWindowResize() {
+		camera.aspect = window.innerWidth / window.innerHei50t;
+		camera.updateProjectionMatrix();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+	}
+
 	function spriteAnimate() {
-   var geometry = sprite.geometry;
-   var st0 = stArray[1][baseS];
-   var st1 = stArray[1][baseS + 1];
-   var st2 = stArray[0][baseS + 1];
-   var st3 = stArray[0][baseS];
+		var geometry = sprite.geometry;
+		var st0 = stArray[1][baseS];
+		var st1 = stArray[1][baseS + 1];
+		var st2 = stArray[0][baseS + 1];
+		var st3 = stArray[0][baseS];
 
-   geometry.faceVertexUvs[0] = [];
-   geometry.faceVertexUvs[0].push([st0, st1, st2]);
-   geometry.faceVertexUvs[0].push([st0, st2, st3]);
-   geometry.uvsNeedUpdate = true;
+		geometry.faceVertexUvs[0] = [];
+		geometry.faceVertexUvs[0].push([st0, st1, st2]);
+		geometry.faceVertexUvs[0].push([st0, st2, st3]);
+		geometry.uvsNeedUpdate = true;
 
-   baseS = (baseS + 1) % 4;
- }
+		baseS = (baseS + 1) % 4;
+	}
 
 
-  function animate() {
+	function animate() {
 		counter++;
 
-		if (counter % 10  === 0)
-		spriteAnimate();
-    var dt = clock.getDelta();
+		if (counter % 10 === 0)
+			spriteAnimate();
+		var dt = clock.getDelta();
 
-    keyboard.update();
-    if (keyboard.down('right')) {
-      vel.x += 5;
-			if(vel.x > maxvel){
+		keyboard.update();
+		if (keyboard.down('right')) {
+			vel.x += 5;
+			if (vel.x > maxvel) {
 				vel.x = maxvel;
 			}
-    }
+		}
 		if (keyboard.down('left')) {
 			vel.x -= 5;
-			if(vel.x < minvel){
+			if (vel.x < minvel) {
 				vel.x = minvel;
 			}
 		}
-    if (keyboard.down('space')) {
-      vel.y += 90;
-      snd.play();
-    }
-		if(vel.x < 0){
-			sprite.rotation.y = Math.PI;
+		if (keyboard.down('space')) {
+			vel.y += 90;
+			snd.play();
 		}
-		else{
-			sprite.rotation.y = 2*Math.PI;
+		if (vel.x < 0) {
+			sprite.rotation.y = Math.PI;
+		} else {
+			sprite.rotation.y = 2 * Math.PI;
 		}
 
-    if (sprite.position.x <=900&& sprite.position.x > 2) {
-      camera.position.x = sprite.position.x
-    }
-		else if(sprite.position.x >900){
+		if (sprite.position.x <= 900 && sprite.position.x > 2) {
+			camera.position.x = sprite.position.x
+		} else if (sprite.position.x > 900) {
 			camera.position.x = 900;
-		}
-		else if(sprite.position.x <= 2){
+		} else if (sprite.position.x <= 2) {
 			camera.position.x = 0;
 		}
 
 
 
 
-     $("#score").val(Math.floor(camera.position.x));
+		$("#score").val(Math.floor(camera.position.x));
 
 
-    // force: add gravity first
-    force = new THREE.Vector3(0, -90, 0);
-    if (pos.y <= spriteR) { // if contact, add contact force
-      force.add(new THREE.Vector3(0, 90, 0));
-    }
-    // then do Euler's
-    vel.add(force.clone().multiplyScalar(dt));
-    pos.add(vel.clone().multiplyScalar(dt));
-    sprite.position.copy(pos);
-    /////////////////////////////
+		// force: add gravity first
+		force = new THREE.Vector3(0, -90, 0);
+		if (pos.y <= spriteR) { // if contact, add contact force
+			force.add(new THREE.Vector3(0, 90, 0));
+		}
+		// then do Euler's
+		vel.add(force.clone().multiplyScalar(dt));
+		pos.add(vel.clone().multiplyScalar(dt));
+		sprite.position.copy(pos);
+		/////////////////////////////
 
 
-    // collision
-    // if (x-p).n < 0 then hit
-    /*
-    if (pos.clone().sub(planeP).dot(planeN) < 0) {
-    	pos.y = 30;
-      vel.set (0,0,0);
-      }
-      */
-    // bounce back
-    if (pos.y <= spriteR) {
-      //pos.y = 0;
-      vel.y = 0;
-    }
-    if (pos.y > height) {
-      //pos.y = 0;
-      pos.y = spriteR;
-    }
+		// collision
+		// if (x-p).n < 0 then hit
+		/*
+		if (pos.clone().sub(planeP).dot(planeN) < 0) {
+			pos.y = 30;
+		  vel.set (0,0,0);
+		  }
+		  */
+		// bounce back
+		if (pos.y <= spriteR) {
+			//pos.y = 0;
+			vel.y = 0;
+		}
+		if (pos.y > height) {
+			//pos.y = 0;
+			pos.y = spriteR;
+		}
 		if (pos.x < -47) {
-				pos.x = -47 + spriteR;
-				vel.x = 0;
-		}
-		if (pos.x >950 ){
+			pos.x = -47 + spriteR;
 			vel.x = 0;
-			pos.x = 950-(spriteR);
 		}
-//bonce back
-	if (pos.y <= spriteR + height (pos.x))
-	{
-		pos.y = spriteR + height(pos.x);
-		vel.y *= -.3;
+		if (pos.x > 950) {
+			vel.x = 0;
+			pos.x = 950 - (spriteR);
+		}
+		//bonce back
+		if (pos.y <= spriteR + height(pos.x)) {
+			pos.y = spriteR + height(pos.x);
+			vel.y *= -.3;
+		}
+		if (pos.y <= spriteR + height(pos.x)) {
+			// if contact, add contact force
+			force.add(new THREE.Vector3(0, 90, 0));
+
+			// determine whether it is possible to make the horizontal move
+			var sign = (vel.x) > 0 ? +1 : -1;
+			if (height(pos.x) < height(pos.x + 1 * sign)) {
+				alert("you died  !");
+				var x;
+				if (confirm("click to reload!") == true) {
+					location.reload();
+				} else {
+					location.reload();
+				}
+				document.getElementById("demo").innerHTML = x;
+			}
+		}
+
+
+
+
+
+
+		requestAnimationFrame(animate);
+		render();
 	}
-		if (pos.y <= spriteR+height(pos.x))
-{
-	// if contact, add contact force
-	force.add(new THREE.Vector3(0, 90, 0));
 
-	// determine whether it is possible to make the horizontal move
-	var sign = (vel.x) > 0 ? +1 : -1;
-	if(height(pos.x) < height(pos.x + 1*sign))
-	{
-		alert("you died  !");
-		var x;
-	 if (confirm("click to reload!") == true) {
-			location.reload();
-	 } else {
-		 	location.reload();
-	 }
-	 document.getElementById("demo").innerHTML = x;
+	function render() {
+		renderer.render(scene, camera);
 	}
-}
 
-
-
-
-
-
-    requestAnimationFrame(animate);
-    render();
-  }
-
-  function render() {
-    renderer.render(scene, camera);
-  }
-
-  //window.focus();
-
-
+	//window.focus();
 </script>
 
-　
 
 <head>
 	<title></title>
 </head>
+
 <body>
 
 </body>
+
 </html>
