@@ -50,6 +50,11 @@
 		var target;
 		var maxSpeed = 60;
 		var maxForce = 10
+		var stArray = [];
+		var baseS = 0,
+			baseT = 0;
+		var counter = 0;
+		var texMat;
 
 		init();
 		animate();
@@ -69,7 +74,6 @@
 			missileFrame.add(missile);
 			return missileFrame;
 		}
-
 
 
 		function init() {
@@ -112,7 +116,7 @@
 
 			missile = buildMissile();
 			pos = new THREE.Vector3();
-			vel = new THREE.Vector3(120, 0, 0);
+			vel = new THREE.Vector3(0, 0, 0);
 			force = new THREE.Vector3();
 
 			missile.rotation.y = 0; //-Math.PI/4;
@@ -124,30 +128,61 @@
 
 			scene.add(missile);
 			/////////////////////////////////////
+			setUpStArray();
 
-			obCen.push(new THREE.Vector3(0, 100, 100));
-			obCen.push(new THREE.Vector3(-100, 100,0 ));
-			obCen.push(new THREE.Vector3(100,100, 0));
-			obCen.push(new THREE.Vector3(0, 100, -100));
+			// loading texture from imgur.com
+			THREE.ImageUtils.crossOrigin = '';
+			texture = THREE.ImageUtils.loadTexture('https://i.imgur.com/6ePTx6p.png');
+			var texMat = new THREE.MeshBasicMaterial({
+				map: texture,
+				transparent: true, // cutout texture: set transparent: true
+				side: THREE.DoubleSide
+			});
 
-			var ob1 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob1.position.z = -100;
-			var ob2 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob2.position.z = 100;
-			var ob3 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob3.position.x = -100;
-			var ob4 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob4.position.x = 100;
-			group.add(ob1);
-			group.add(ob2);
-			group.add(ob3);
-			group.add(ob4);
-		  group.position.y = 100;
-			scene.add(group);
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(
+				new THREE.Vector3(-50, -50, 0),
+				new THREE.Vector3(50, -50, 0),
+				new THREE.Vector3(50, 50, 0),
+				new THREE.Vector3(-50, 50, 0)
+			);
+
+			var face;
+			face = new THREE.Face3(0, 1, 2);
+			geometry.faces.push(face);
+			face = new THREE.Face3(0, 2, 3);
+			geometry.faces.push(face);
+
+			geometry.faceVertexUvs[0].push([stArray[1][0], stArray[1][1], stArray[0][1]]);
+			geometry.faceVertexUvs[0].push([stArray[1][0], stArray[0][1], stArray[0][0]]);
+
+			geometry.computeBoundingSphere();
+			geometry.computeFaceNormals();
+			geometry.computeVertexNormals();
+
+			sprite = new THREE.Mesh(geometry, texMat);
+			scene.add(sprite);
 
 
 
+		}
 
+		function spriteAnimate() {
+			var geometry = sprite.geometry;
+			var st0 = stArray[baseS + 1][baseT];
+			var st1 = stArray[baseS + 1][baseT + 1];
+			var st2 = stArray[baseS][baseT + 1];
+			var st3 = stArray[baseS][baseT];
+
+			geometry.faceVertexUvs[0] = [];
+			geometry.faceVertexUvs[0].push([st0, st1, st2]);
+			geometry.faceVertexUvs[0].push([st0, st2, st3]);
+			geometry.uvsNeedUpdate = true;
+
+			baseT = (baseT + 1) % 8;
+			if (baseT === 0) {
+				baseS = (baseS + 1) % 4;
+			}
 		}
 
 
@@ -179,10 +214,53 @@
 				v.setLength(vMax);
 		}
 
+		function computeForce() {
+			var tmp;
+			var tmpProj;
+			for (var i = 0; i < obCen.length; i++) {
+				force = target.clone().sub(pos).setLength(maxSpeed).sub(vel);
+				// collision avoidance
+				// (for each obstacle)
+				tmp = obCen[i].clone().sub(pos);
+				tmpProj = tmp.clone().projectOnVector(vel);
 
+				if (tmp.dot(vel) > 0) {
+					if (tmpProj.clone().sub(tmp).length() < obRad + 20) {
+
+						if (tmpProj.length() < 5 * vel.length()) {
+							console.log('block & close');
+							force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
+						}
+					}
+				}
+			}
+		}
+
+		function setUpStArray() {
+			for (var i = 0; i < 5; i++) {
+				var row = [];
+				for (var j = 0; j < 9; j++)
+					row.push(new THREE.Vector2(j * 0.125, 1 - 0.25 * i));
+				stArray.push(row);
+			}
+		}
+
+		function sleep(milliseconds) {
+			var start = new Date().getTime();
+			for (var i = 0; i < 1e7; i++) {
+				if ((new Date().getTime() - start) > milliseconds) {
+					break;
+				}
+			}
+		}
 
 		function animate() {
 			controls.update();
+			counter++;
+			sprite.lookAt(camera.position);
+			if (counter % 8 === 0)
+				spriteAnimate();
+
 			puck.position.y = 30;
 			var dt = clock.getDelta();
 
@@ -197,11 +275,14 @@
 				target = puck.position;
 			}
 
-			if (target !== null && target.distanceTo(pos) < 50) {
+			if (target !== null && target.distanceTo(pos) < 25) {
 				vel.set(0, 0, 0);
 				target = null;
 				force.set(0, 0, 0);
 				console.log('bomb');
+				sprite.position.copy(pos);
+				sleep(10000);
+
 			}
 
 			if (target !== null)
