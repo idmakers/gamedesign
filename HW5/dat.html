@@ -193,7 +193,7 @@
 
         function update() {
             controls.update();
-            //keyframe(clock.getElapsedTime());
+      keyframe(clock.getElapsedTime());
         }
 
         function onWindowResize() {
@@ -260,7 +260,7 @@
 
             lowerArmL.rotation.x = -gcontrols.elbowX;
             torso.rotation.y = gcontrols.torsoY;
-/*
+
             upperArm.rotation.z = intKey1[0];
             upperArm.rotation.y = intKey1[1];
             upperArm.rotation.x = intKey1[2];
@@ -273,7 +273,7 @@
 
             lowerArmL.rotation.x = intKey2[3];
             torso.rotation.y = intKey2[4];
-*/
+
             renderer.render(scene, camera);
         }
     </script>
