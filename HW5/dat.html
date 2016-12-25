@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<style>
+    #info {
+        position: absolute;
+        top: 0px;
+        width: 100%;
+        padding: 10px;
+        text-align: center;
+        color: #ffff00
+    }
+
+    body {
+        overflow: hidden;
+    }
+</style>
+
+<head>
+    <title></title>
+    <div id="info">HW4
+        <br></div>
+</head>
+
+<body>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+    <script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
+
+
+    <script>
+        var scene, renderer, camera;
+        var controls;
+        var torso, lowerArm, upperArm;
+        var  lowerArmL, upperArmL;
+        var clock = new THREE.Clock();
+
+        var gcontrols;
+
+        var dt = 0;
+
+
+        var keys1 = [
+            [0, [-1.47, -.31, -.38, -.98, 0]],
+            [0.1, [-1.47, -.31, -.38, -.98, 0]],
+            [0.2, [-.80, -.20, -.45, -.98, 0]],
+            [0.3, [-.61, -.15, -0.51, -.98, 0]],
+            [0.4, [0.07, 0.29, -.78, -0.65, 0]],
+            [0.5, [0.07, 0.29, -.78, -0.65, 0]],
+            [0.54, [-.61, -.15, -0.51, -.98, 0]],
+            [0.6, [-.80, -.20, -.45, -.98, 0]],
+            [0.8, [-1.47, -.31, -.38, -.98, 0]],
+            [1, [-1.47, -.31, -.38, -.98, 0]],
+        ];
+        var T1 = 4;
+        var clock1 = new THREE.Clock();
+        var ts = clock.getElapsedTime();
+        var intKey1 = [];
+
+        var keys2 = [
+          [0, [1.47, 3.31, -.38, .98, 0]],
+          [0.1, [1.47, 3.31, -.38, .98, 0]],
+          [0.2, [.80, 3.20, -.45, .98, 0]],
+          [0.3, [.61, 3.15, -0.51, .98, 0]],
+          [0.4, [-0.07, 2.79, -.78,0.65, 0]],
+          [0.5, [-0.07, 2.79, -.78, 0.65, 0]],
+          [0.54, [.61, 3.15, -0.51, .98, 0]],
+          [0.6, [.80, 3.20, -.45, .98, 0]],
+          [0.8, [1.47, 3.31, -.38, .98, 0]],
+          [1, [1.47, 3.31, -.38, .98, 0]],
+        ];
+        var T2 = 2;
+        var clock2 = new THREE.Clock();
+        var intKey2 = [];
+      /////////////////////////////////////////////////////
+
+        init();
+        animate();
+
+
+        function init() {
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(width, height);
+            renderer.setClearColor(0x888888);
+
+            document.body.appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
+            camera.position.y = 160;
+            camera.position.z = 400;
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(camera);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            var boxGeometry = new THREE.BoxGeometry(50, 100, 30);
+            torso = new THREE.Object3D();
+            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+            bodyMesh.position.set(0, 50, 0);
+            torso.add(bodyMesh);
+            scene.add(torso);
+            //torso.position.set(0, 0, -35);
+
+            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+            upperArm = new THREE.Object3D();
+            upperArm.add(arm);
+            arm.position.set(-5, -20, 0);
+            torso.add(upperArm);
+            upperArm.position.set(-25, 100, 0);
+
+            var geometry = new THREE.CylinderGeometry(0.5, 0.5,50, 50);
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xffff00});
+            var stick = new THREE.Mesh(geometry, material);
+
+            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+            lowerArm = new THREE.Object3D();
+            lowerArm.position.set(0, -40, 0);
+            upperArm.add(lowerArm);
+            lowerArm.add(arm2);
+            arm2.add(stick);
+            arm2.position.set(-5, -20, 0);
+            stick.position.set(0,-20,0);
+
+
+            //////////////////////////////////
+            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+            upperArmL = new THREE.Object3D();
+            upperArmL.add(armL);
+            armL.position.set(-5, -20, 0);
+            torso.add(upperArmL);
+            upperArmL.position.set(25, 100, 0);
+
+            var geometry = new THREE.CylinderGeometry(0.5, 0.5,50, 50);
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xffff00});
+            var stick = new THREE.Mesh(geometry, material);
+
+            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+            lowerArmL = new THREE.Object3D();
+            lowerArmL.position.set(0, -40, 0);
+            upperArmL.add(lowerArmL);
+            lowerArmL.add(armL2);
+            armL2.add(stick);
+            armL2.position.set(-5, -20, 0);
+            stick.position.set(0,-20,0);
+
+            ////////////////////////////////
+            var gridXZ = new THREE.GridHelper(500, 10);
+            gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+            scene.add(gridXZ);
+
+            window.addEventListener('resize', onWindowResize, false);
+            ///////////////////////////////////////////////////
+            gcontrols = {
+                shoulderZ: 0.01,
+                shoulderY: 0.1,
+                shoulderX: 0.1,
+                elbowX: 0.1,
+                torsoY: 0.1,
+            };
+
+            gui = new dat.GUI();
+            gui.remember(gcontrols);
+
+            gui.domElement.id = 'gui';
+            gui.add(gcontrols, 'shoulderZ', -3.14, 3);
+            gui.add(gcontrols, 'shoulderY', -3.2, 3);
+            gui.add(gcontrols, 'shoulderX', -3.2, 3);
+            gui.add(gcontrols, 'elbowX', -3, 3);
+            gui.add(gcontrols, 'torsoY', -3, 3);
+
+        }
+
+
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            render();
+        }
+
+        function update() {
+            controls.update();
+            //keyframe(clock.getElapsedTime());
+        }
+
+        function onWindowResize() {
+            var width = window.innerWidth,
+                height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function keyframe(t) {
+            var s = ((t - ts) % T1) / T1;
+            console.log("key1T"+"="+s);
+
+            for (var i = 0; i < keys1.length; i++) {
+                if (keys1[i][0] > s) break;
+            }
+
+            // take i-1
+            var ii = i - 1;
+            var a = (s - keys1[ii][0]) / (keys1[ii + 1][0] - keys1[ii][0]);
+            intKey1 = []
+            for (var j = 0; j < 5; j++) {
+                intKey1.push(keys1[ii][1][j] * (1 - a) + keys1[ii + 1][1][j] * a);
+            }
+            //console.log(intKey1);
+
+              var x = ((t - ts) % T2) / T2;
+            for (var a = 0; a < keys2.length; a++) {
+                if (keys2[a][0] > x) break;
+            }
+            console.log("key2T"+"="+x);
+            // take i-1
+            var aa = a - 1;
+            var a = (x - keys2[aa][0]) / (keys2[aa + 1][0] - keys2[aa][0]);
+            intKey2 = []
+            for (var z = 0; z < 5; z++) {
+                intKey2.push(keys2[aa][1][z] * (1 - a) + keys2[aa + 1][1][z] * a);
+            }
+            //console.log(intKey2);
+
+
+
+        }
+
+        function render() {
+            upperArm.rotation.order = 'ZXY';
+
+            upperArm.rotation.z = gcontrols.shoulderZ;
+            upperArm.rotation.y = gcontrols.shoulderY;
+            upperArm.rotation.x = gcontrols.shoulderX;
+
+            lowerArm.rotation.x = gcontrols.elbowX;
+            torso.rotation.y = gcontrols.torsoY;
+
+
+//////////////////////////////////////////////////
+
+            upperArmL.rotation.order = 'ZXY';
+
+            upperArmL.rotation.z = -gcontrols.shoulderZ;
+            upperArmL.rotation.y = -gcontrols.shoulderY+3;
+            upperArmL.rotation.x = gcontrols.shoulderX+(Math.PI/2);
+
+            lowerArmL.rotation.x = -gcontrols.elbowX;
+            torso.rotation.y = gcontrols.torsoY;
+/*
+            upperArm.rotation.z = intKey1[0];
+            upperArm.rotation.y = intKey1[1];
+            upperArm.rotation.x = intKey1[2];
+
+            lowerArm.rotation.x = intKey1[3];
+            torso.rotation.y = intKey1[4];
+            upperArmL.rotation.z = intKey2[0];
+            upperArmL.rotation.y = intKey2[1];
+            upperArmL.rotation.x = intKey2[2];
+
+            lowerArmL.rotation.x = intKey2[3];
+            torso.rotation.y = intKey2[4];
+*/
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>

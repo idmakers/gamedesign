@@ -1,182 +1,239 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
+<style>
+	#info {
+		position: absolute;
+		top: 0px;
+		width: 100%;
+		padding: 10px;
+		text-align: center;
+		color: #ffff00
+	}
+
+	body {
+		overflow: hidden;
+	}
+</style>
+
 <head>
-<title>Texture from Canvas (Three.js)</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<link rel=stylesheet href="css/base.css"/>
+	<title></title>
+	<div id="info">HW4
+		<br></div>
 </head>
+
 <body>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
-<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
-<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
-<script src="https://idmakers.github.io/stats.js//build/stats.min.js"></script>
 
-<!-- jQuery code to display an information button and box when clicked. -->
-<script src="js/jquery-1.9.1.js"></script>
-<script src="js/jquery-ui.js"></script>
-<link rel=stylesheet href="css/jquery-ui.css" />
-<link rel=stylesheet href="css/info.css"/>
-<script src="js/info.js"></script>
-<div id="infoButton"></div>
-<div id="infoBox" title="Demo Information">
-This three.js demo is part of a collection at
-</div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+	<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+	<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+	<script src="https://idmakers.github.io/stats.js//build/stats.min.js"></script>
 
-<div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
-<script>
-/*
-Three.js "tutorials by example"
-Author: Lee Stemkoski
-Date: July 2013 (three.js v59dev)
-*/
+	<script>
+  var camera, scene, renderer, controls;
+var vehicle;
 
-// MAIN
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+var pickables = [];
 
-// standard global variables
-    var container, scene, camera, renderer, controls, stats;
-    var keyboard = new THREEx.KeyboardState();
-    var clock = new THREE.Clock();
-    // custom global variables
-    var cube;
+var pos, vel, force;
+var angle = 0;
 
-    init();
-    animate();
+var mass = 1;
+var clock = new THREE.Clock();
 
-    // FUNCTIONS    
-    function init() 
-    {
-      // SCENE
-      scene = new THREE.Scene();
-      // CAMERA
-      var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-      var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
-      camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
-      scene.add(camera);
-      camera.position.set(0,150,400);
-      camera.lookAt(scene.position);  
-      // RENDERER
-      if ( Detector.webgl )
-        renderer = new THREE.WebGLRenderer( {antialias:true} );
-      else
-        renderer = new THREE.CanvasRenderer(); 
-      renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-      container = document.getElementById( 'ThreeJS' );
-      container.appendChild( renderer.domElement );
-      // EVENTS
-      THREEx.WindowResize(renderer, camera);
-      THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
-      // CONTROLS
-      controls = new THREE.OrbitControls( camera, renderer.domElement );
-      // STATS
-      stats = new Stats();
-      stats.domElement.style.position = 'absolute';
-      stats.domElement.style.bottom = '0px';
-      stats.domElement.style.zIndex = 100;
-      container.appendChild( stats.domElement );
-      // LIGHT
-      var light = new THREE.PointLight(0xffffff);
-      light.position.set(0,250,0);
-      scene.add(light);
-      // FLOOR
-      var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
-      floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-      floorTexture.repeat.set( 10, 10 );
-      var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-      var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
-      var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.rotation.x = Math.PI / 2;
-      floor.doubleSided = true;
-      scene.add(floor);
-      // SKYBOX/FOG
-      var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-      var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
-      var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-      // scene.add(skyBox);
-      scene.fog = new THREE.FogExp2( 0x9999ff, 0.00025 );
-      
-      ////////////
-      // CUSTOM //
-      ////////////
-      
-      /////// draw text on canvas /////////
+var obCen = new THREE.Vector3();
+var obRad = 150;
 
-      // create a canvas element
-      var canvas1 = document.createElement('canvas');
-      var context1 = canvas1.getContext('2d');
-      context1.font = "Bold 40px Arial";
-      context1.fillStyle = "rgba(255,0,0,0.95)";
-        context1.fillText('Hello, world!', 0, 50);
-        
-      // canvas contents will be used for a texture
-      var texture1 = new THREE.Texture(canvas1) 
-      texture1.needsUpdate = true;
-          
-        var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
-        material1.transparent = true;
+var target = new THREE.Vector3();
+var maxSpeed = 60;
+var maxForce = 20;
 
-        var mesh1 = new THREE.Mesh(
-            new THREE.PlaneGeometry(canvas1.width, canvas1.height),
-            material1
-          );
-      mesh1.position.set(0,50,0);
-      scene.add( mesh1 );
-      
-      /////// draw image on canvas /////////
+init();
+animate();
 
-      // create a canvas element
-      var canvas2 = document.createElement('canvas');
-      var context2 = canvas2.getContext('2d');
-      // canvas contents will be used for a texture
-      var texture2 = new THREE.Texture(canvas2);
-      
-      // load an image
-      var imageObj = new Image();
-      imageObj.src = "images/Dice-Blue-1.png";
-      // after the image is loaded, this function executes
-      imageObj.onload = function()
-      {  
-        context2.drawImage(imageObj, 0, 0);
-        if ( texture2 ) // checks if texture exists
-          texture2.needsUpdate = true;
-      };  
-          
-        var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
-        material2.transparent = true;
+function buildPlane() {
+  var plane = new THREE.Object3D();
 
-        var mesh2 = new THREE.Mesh(
-            new THREE.PlaneGeometry(canvas2.width, canvas2.height),
-            material2
-          );
-      mesh2.position.set(0,50,-50);
-      scene.add( mesh2 ); 
-    }
+  var geometry = new THREE.Geometry();
+  geometry.vertices.push(new THREE.Vector3(30, 0, 0));
+  geometry.vertices.push(new THREE.Vector3(0, 10, 0));
+  geometry.vertices.push(new THREE.Vector3(0, 0, 10));
+  geometry.vertices.push(new THREE.Vector3(0, 0, -10));
+  var face;
+  face = new THREE.Face3(0, 1, 2);
+  geometry.faces.push(face);
+  face = new THREE.Face3(1, 3, 2);
+  geometry.faces.push(face);
+  face = new THREE.Face3(3, 1, 0);
+  geometry.faces.push(face);
+  face = new THREE.Face3(2, 3, 0);
+  geometry.faces.push(face);
 
-    function animate() 
-    {
-        requestAnimationFrame( animate );
-      render();   
-      update();
-    }
+  geometry.computeBoundingSphere();
+  geometry.computeFaceNormals();
+  geometry.computeVertexNormals();
 
-    function update()
-    {
-      if ( keyboard.pressed("z") ) 
-      { 
-        // do something
+  mesh = new THREE.Mesh(geometry, new THREE.MeshNormalMaterial({
+    wireframe: false
+  }));
+  plane.add(mesh);
+
+  return plane;
+}
+
+function init() {
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+  camera.position.z = 500;
+  scene.add(camera);
+  /*
+    // add my cylinder
+    var geometry = new THREE.BoxGeometry(15, 2, 5);
+    var material = new THREE.MeshNormalMaterial();
+    vehicle = new THREE.Mesh(geometry, material);
+    scene.add(vehicle);
+  */
+  var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+  scene.add(gridXZ);
+
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  //////////////////////
+
+  var ob = new THREE.Mesh (new THREE.SphereGeometry (obRad,20,20),
+  new THREE.MeshNormalMaterial({wireframe:true}));
+  scene.add (ob);
+
+  pos = new THREE.Vector3();
+  vel = new THREE.Vector3();
+  force = new THREE.Vector3();
+
+  vehicle = buildPlane();
+  scene.add(vehicle);
+
+  document.body.appendChild(renderer.domElement);
+
+  plane = new THREE.Mesh(new THREE.PlaneGeometry(100, 400, 10, 10), new THREE.MeshBasicMaterial({
+    wireframe: true,
+    side: THREE.DoubleSide,
+    color: 0xff0000
+  }));
+  scene.add(plane);
+  plane.position.x = -150;
+  plane.rotation.x = -Math.PI / 2;
+
+  var plane2 = plane.clone();
+  scene.add(plane2);
+  plane2.position.x = 150;
+  plane2.position.y = 100;
+  plane.rotation.x = -Math.PI / 2;
+  pickables = [plane, plane2];
+
+  puck = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 2, 20), new THREE.MeshNormalMaterial());
+  scene.add(puck);
+
+  document.addEventListener('mousedown', onDocumentMouseDown, false);
+}
+
+
+function computeForce() {
+  force = target.clone().sub(pos).setLength(maxSpeed).sub(vel);
+
+  // collision avoidance
+  // (for each obstacle)
+  var tmp = obCen.clone().sub(pos);
+  var tmpProj = tmp.clone().projectOnVector(vel);
+
+  if (tmp.dot(vel) > 0) {
+    if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
+
+      if (tmpProj.length() < 5 * vel.length()) {
+        console.log('block & close');
+        force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
       }
-      
-      controls.update();
-      stats.update();
     }
+  }
 
-    function render() 
-    {
-      renderer.render( scene, camera );
-    }
+}
 
-</script>
+function vectorClamp(v, vMax) {
+  if (v.length() > vMax)
+    v.setLength(vMax);
+}
 
+
+function onDocumentMouseDown(event) {
+  event.preventDefault();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  // find intersections
+  raycaster.setFromCamera(mouse, camera);
+  var intersects = raycaster.intersectObjects(pickables);
+  if (intersects.length > 0) {
+    puck.position.copy(intersects[0].point);
+    target.copy(puck.position);
+  }
+
+}
+
+function animate() {
+
+  computeForce();
+  var dt = clock.getDelta(); // delta-time
+
+  vectorClamp(force, maxForce);
+  vel.add(force.clone().multiplyScalar(dt / mass));
+  vectorClamp(vel, maxSpeed);
+  pos.add(vel.clone().multiplyScalar(dt));
+
+  if (vel.length() > 0.001) {
+    angle = Math.atan2(-vel.z, vel.x);
+  }
+  /*
+  	rolling ...
+    // copy to vehicle
+    vehicle.position.copy(pos);
+  	// set orientation
+    var quaternion = new THREE.Quaternion();
+    var localDir = new THREE.Vector3(1,0,0);
+    var angle = localDir.angleTo (vel);
+    var axis = new THREE.Vector3();
+    axis.crossVectors (localDir, vel).normalize();
+    quaternion.setFromAxisAngle (axis,angle);
+    vehicle.quaternion.copy (quaternion);
+  */
+
+  // set orientation
+  var localX = vel.clone().normalize();
+  var localY = new THREE.Vector3(0, 1, 0);
+  var tmp = localY.clone().projectOnVector(localX);
+  localY.sub(tmp).normalize();
+  var localZ = new THREE.Vector3();
+  localZ.crossVectors(localX, localY);
+
+  vehicle.matrix.makeBasis(localX, localY, localZ);
+  vehicle.matrix.setPosition(pos);
+  vehicle.matrixAutoUpdate = false;
+
+
+  controls.update();
+  requestAnimationFrame(animate);
+  render();
+}
+
+function render() {
+  renderer.render(scene, camera);
+}
+
+	</script>
 </body>
+
 </html>

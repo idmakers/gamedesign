@@ -43,11 +43,10 @@
 		var camera, scene, renderer, light, controls;
 		var missile;
 		var pos, vel, force;
-		var obCen = [];
-		var obRad = 50;
+		var obCen = new THREE.Vector3(0, 0, -100);
+		var obRad = 100;
 		var group = new THREE.Object3D();
 		var clock = new THREE.Clock();
-		var target;
 		var maxSpeed = 60;
 		var maxForce = 10
 		var stArray = [];
@@ -55,6 +54,7 @@
 			baseT = 0;
 		var counter = 0;
 		var texMat;
+		var ob1;
 
 		init();
 		animate();
@@ -109,7 +109,6 @@
 			pos = new THREE.Vector3();
 			vel = new THREE.Vector3(100, 0, 0);
 			force = new THREE.Vector3();
-			target = puck.position;
 			raycaster = new THREE.Raycaster();
 			document.addEventListener('mousedown', onDocumentMouseDown, false);
 			//////////////////////////////////////////////
@@ -163,6 +162,16 @@
 			sprite = new THREE.Mesh(geometry, texMat);
 			scene.add(sprite);
 
+			/////////////////////
+
+			var ob = new THREE.Mesh(new THREE.SphereGeometry(obRad, 20, 20),
+				new THREE.MeshNormalMaterial({
+					wireframe: true
+				}));
+			scene.add(ob);
+
+
+
 
 
 		}
@@ -205,6 +214,7 @@
 			var intersects = raycaster.intersectObjects(pickables);
 			if (intersects.length > 0) {
 				puck.position.copy(intersects[0].point);
+				target.copy(puck.position);
 			}
 
 		}
@@ -217,23 +227,23 @@
 		function computeForce() {
 			var tmp;
 			var tmpProj;
-			for (var i = 0; i < obCen.length; i++) {
-				force = target.clone().sub(pos).setLength(maxSpeed).sub(vel);
-				// collision avoidance
-				// (for each obstacle)
-				tmp = obCen[i].clone().sub(pos);
-				tmpProj = tmp.clone().projectOnVector(vel);
 
-				if (tmp.dot(vel) > 0) {
-					if (tmpProj.clone().sub(tmp).length() < obRad + 20) {
+			force = target.clone().sub(pos).setLength(maxSpeed).sub(vel);
+			// collision avoidance
+			// (for each obstacle)
+			tmp = obCen.clone().sub(pos);
+			tmpProj = tmp.clone().projectOnVector(vel);
 
-						if (tmpProj.length() < 5 * vel.length()) {
-							console.log('block & close');
-							force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
-						}
+			if (tmp.dot(vel) > 0) {
+				if (tmpProj.clone().sub(tmp).length() < obRad + 20) {
+
+					if (tmpProj.length() < 5 * vel.length()) {
+						console.log('block & close');
+						force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
 					}
 				}
 			}
+
 		}
 
 		function setUpStArray() {
@@ -256,33 +266,32 @@
 
 		function animate() {
 			controls.update();
-			counter++;
-			sprite.lookAt(camera.position);
-			if (counter % 8 === 0)
-				spriteAnimate();
 
+			counter++;
+
+			sprite.lookAt(camera.position);
+			spriteAnimate();
 			puck.position.y = 30;
 			var dt = clock.getDelta();
 
 			// if reach 50, move to target (280,50,280)
 			if (target === null && pos.y > 50) {
 				// start seek
-				target = puck.position;
+				target = puck.position
 			}
 
 			if (target !== null && target.distanceTo(pos) < 100) {
 				// start seek
 				target = puck.position;
 			}
+			computeForce();
 
 			if (target !== null && target.distanceTo(pos) < 25) {
 				vel.set(0, 0, 0);
 				target = null;
-				force.set(0, 0, 0);
+				force.set(0, 0, 0);g
 				console.log('bomb');
 				sprite.position.copy(pos);
-				sleep(10000);
-
 			}
 
 			if (target !== null)
@@ -303,6 +312,8 @@
 			axis.crossVectors(localDir, vel).normalize();
 			quaternion.setFromAxisAngle(axis, angle);
 			missile.quaternion.copy(quaternion);
+			//////////////////////////////////////////////
+
 
 			requestAnimationFrame(animate);
 			render();
