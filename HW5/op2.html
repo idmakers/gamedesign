@@ -41,846 +41,846 @@
         var dt = 0;
 
         var keys1 = [
-            [0, [0.01, 0.021, -.65, -.98, 0]],
-            [0.5, [0.01, 0.021, -.65, -.98, 0]],
-            [0.6, [0.01, 0.021, .65, -.98, 0]],
-            [0.9, [0.01, 0.021, .65, -.98, 0]],
-            [1, [0.01, 0.021, .65, -.98, 0]],
+                [0, [0.01, 0.021, -.65, -.98, 0]],
+                [0.15, [0.01, 0.021, -.25, -.98, 0]],
+                [0.3, [0.01, 0.021, .15, -.98, 0]],
+                [0.45, [0.01, 0.021, .55, -.98, 0]],
+                [0.6, [0.01, 0.021, .15, -.98, 0]],
+                [0.75,[0.01, 0.021, -.25, -.98, 0]],
+                [0.1, [0.01, 0.021, -.65, -.98, 0]],
+                ];
+                var T1 = 4;
+                var clock1 = new THREE.Clock();
+                var ts = clock.getElapsedTime();
+                var intKey1 = [];
+                var keys2 = [
 
-        ];
-        var T1 = 4;
-        var clock1 = new THREE.Clock();
-        var ts = clock.getElapsedTime();
-        var intKey1 = [];
-        var keys2 = [
+                    [0, [0.01, -3.1, 0.15]],
+                    [0.5, [0.01, -3.1, 0.15]],
+                    [0.6, [0.01, -3.1, -.84]],
+                    [0.9, [0.01, -3.1, -.84]],
+                    [1, [0.01, -3.1, -.84]],
+                ];
+                var T2 = 4;
+                var clock2 = new THREE.Clock();
+                var intKey2 = [];
 
-            [0, [0.01, -3.1, 0.15]],
-            [0.5, [0.01, -3.1, 0.15]],
+                var clock1 = new THREE.Clock();
+                var ts = clock.getElapsedTime();
+                var intKey3 = [];
+                var keys3 = [
 
-            [0.6, [0.01, -3.1, -.84]],
-            [0.9, [0.01, -3.1, -.84]],
-            [1, [0.01, -3.1, -.84]],
-        ];
-        var T2 = 4;
-        var clock2 = new THREE.Clock();
-        var intKey2 = [];
+                    [0, [0.0, 0.01, 0.15, 0.01]],
+                    [0.3, [0.34, -1.05, 0.65, 0.88]],
+                    [0.5, [0.34, -1.05, 0.65, 0.88]],
+                    [0.45, [-0.18, -0.58, .64, .88]],
+                    [0.6, [-0.78, .09, .62, .24]],
+                    [0.7, [-0.78, .09, .62, .24]],
+                    [1, [0.0, 0.01, 0.15, 0.01]],
+                ];
+                var T3 = 4;
+                var clock3 = new THREE.Clock();
+                var intKey3 = [];
+                ///////////////////
+                var Agent = function(mesh, initPos) {
+                    this.pos = new THREE.Vector3();
+                    if (initPos) this.pos.copy(initPos);
+                    this.vel = new THREE.Vector3();
+                    this.force = new THREE.Vector3();
+                    this.target = new THREE.Vector3();
+                    this.angle = 0;
+                    this.mesh = mesh;
+                    this.nbhd = [];
+                    this.maxSpeed = 60;
+                    this.maxForce = 60;
 
-        var clock1 = new THREE.Clock();
-        var ts = clock.getElapsedTime();
-        var intKey3 = [];
-        var keys3 = [
+                    this.setTarget = function(target) {
+                        this.target.copy(target);
+                    }
 
-            [0, [0.0, 0.01, 0.15, 0.01]],
-            [0.3, [0.34, -1.05, 0.65, 0.88]],
-            [0.5, [0.34, -1.05, 0.65, 0.88]],
-            [0.45, [-0.18, -0.58, .64, .88]],
-           [0.6, [-0.78, .09, .62, .24]],
-            [0.7, [-0.78, .09, .62, .24]],
-            [1, [0.0, 0.01, 0.15, 0.01]],
-        ];
-        var T3 = 4;
-        var clock3 = new THREE.Clock();
-        var intKey3 = [];
-        ///////////////////
-        var Agent = function(mesh, initPos) {
-            this.pos = new THREE.Vector3();
-            if (initPos) this.pos.copy(initPos);
-            this.vel = new THREE.Vector3();
-            this.force = new THREE.Vector3();
-            this.target = new THREE.Vector3();
-            this.angle = 0;
-            this.mesh = mesh;
-            this.nbhd = [];
-            this.maxSpeed = 60;
-            this.maxForce = 60;
+                    // compute force
+                    this.update = function(dt) {
+                        // compute force
+                        this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
 
-            this.setTarget = function(target) {
-                this.target.copy(target);
-            }
+                        // collision avoidance
+                        // (for each obstacle)
+                        // force clamping
+                        if (this.force.length() > this.maxForce)
+                            this.force.setLength(this.maxForce);
+                        this.vel.add(this.force.clone().multiplyScalar(dt));
 
-            // compute force
-            this.update = function(dt) {
-                // compute force
-                this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
+                        // velocity clamping
+                        if (this.vel.length() > this.maxSpeed)
+                            this.vel.setLength(this.maxSpeed);
+                        this.pos.add(this.vel.clone().multiplyScalar(dt));
 
-                // collision avoidance
-                // (for each obstacle)
-                // force clamping
-                if (this.force.length() > this.maxForce)
-                    this.force.setLength(this.maxForce);
-                this.vel.add(this.force.clone().multiplyScalar(dt));
+                        if (this.vel.length() > 0.001) {
+                            this.angle = Math.atan2(-this.vel.z, this.vel.x);
+                        }
+                        this.mesh.position.copy(this.pos);
+                        this.mesh.rotation.y = this.angle;
 
-                // velocity clamping
-                if (this.vel.length() > this.maxSpeed)
-                    this.vel.setLength(this.maxSpeed);
-                this.pos.add(this.vel.clone().multiplyScalar(dt));
+                        // catch handling
+                        if (this.pos.distanceTo(this.target) < 2) {
+                            this.vel.set(0, 0, 0);
+                            angle = Math.random() * Math.PI * 2;
+                        }
 
-                if (this.vel.length() > 0.001) {
-                    this.angle = Math.atan2(-this.vel.z, this.vel.x);
+
+
+                    }
                 }
-                this.mesh.position.copy(this.pos);
-                this.mesh.rotation.y = this.angle;
+                init();
+                animate();
 
-                // catch handling
-                if (this.pos.distanceTo(this.target) < 2) {
-                    this.vel.set(0, 0, 0);
-                    angle = Math.random() * Math.PI * 2;
+
+                function init() {
+                    var width = window.innerWidth;
+                    var height = window.innerHeight;
+
+                    renderer = new THREE.WebGLRenderer({
+                        antialias: true
+                    });
+                    renderer.setSize(width, height);
+                    renderer.setClearColor(0x888888);
+
+                    document.body.appendChild(renderer.domElement);
+
+                    scene = new THREE.Scene();
+
+                    camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
+                    camera.position.y = 160;
+                    camera.position.z = 400;
+                    camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    scene.add(camera);
+
+                    controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+                    var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
+                    torso = new THREE.Object3D();
+                    var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    bodyMesh.position.set(0, 105, 0);
+                    torso.add(bodyMesh);
+                    scene.add(torso);
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm = new THREE.Object3D();
+                    upperArm.add(arm);
+                    arm.position.set(-5, -20, 0);
+                    torso.add(upperArm);
+                    upperArm.position.set(-25, 120, 0);
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm = new THREE.Object3D();
+                    lowerArm.position.set(0, -40, 0);
+                    upperArm.add(lowerArm);
+                    lowerArm.add(arm2);
+                    arm2.position.set(-5, -20, 0);
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArmL = new THREE.Object3D();
+                    upperArmL.add(armL);
+                    armL.position.set(-5, -
+                        20, 0);
+                    torso.add(upperArmL);
+                    upperArmL.position.set(25, 120, 0);
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArmL = new THREE.Object3D();
+                    lowerArmL.position.set(0, -40, 0);
+                    upperArmL.add(lowerArmL);
+                    lowerArmL.add(armL2);
+                    armL2.position.set(-5, -20, 0); ////////////////////////////////
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg = new
+                    THREE.Object3D();
+                    upperLeg.add(leg);
+                    leg.position.set(-5, -20, 0);
+                    torso.add(upperLeg);
+                    upperLeg.position.set(-5, 80, 0);
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg = new
+                    THREE.Object3D();
+                    lowerLeg.position.set(0, -35, 0);
+                    upperLeg.add(lowerLeg);
+                    lowerLeg.add(leg2);
+                    leg2.position.set(-5, -20, 0);
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var legL = new THREE.Mesh(boxGeometry,
+                        new THREE.MeshNormalMaterial());
+                    upperLegL = new THREE.Object3D();
+                    upperLegL.add(legL);
+                    legL.position.set(-5, -20, 0);
+                    torso.add(upperLegL);
+                    upperLegL.position.set(15, 80, 0);
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    legL2 = new THREE.Mesh(boxGeometry,
+                        new THREE.MeshNormalMaterial());
+                    lowerLegL = new THREE.Object3D();
+                    lowerLegL.position.set(0, -35, 0);
+                    upperLegL.add(lowerLegL);
+                    lowerLegL.add(legL2);
+                    legL2.position.set(-5, -20, 0);
+                    /////////////////////2
+                    var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
+                    torso1 = new THREE.Object3D();
+                    var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    bodyMesh.position.set(100, 105, 0);
+                    torso1.add(bodyMesh);
+                    scene.add(torso1);
+                    //torso1.position.set(0, 0, -35);
+                    /////////////////////
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm1 = new THREE.Object3D();
+                    upperArm1.add(arm);
+                    arm.position.set(-5, -20, 0);
+                    torso1.add(upperArm1);
+                    upperArm1.position.set(75, 120, 0);
+
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm1 = new THREE.Object3D();
+                    lowerArm1.position.set(0, -40, 0);
+                    upperArm1.add(lowerArm1);
+                    lowerArm1.add(arm2);
+                    arm2.position.set(-5, -20, 0);
+
+
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm1L = new THREE.Object3D();
+                    upperArm1L.add(armL);
+                    armL.position.set(-5, -20, 0);
+                    torso1.add(upperArm1L);
+                    upperArm1L.position.set(125, 120, 0);
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm1L = new THREE.Object3D();
+                    lowerArm1L.position.set(0, -40, 0);
+                    upperArm1L.add(lowerArm1L);
+                    lowerArm1L.add(armL2);
+                    armL2.position.set(-5, -20, 0);
+
+                    ////////////////////////////////
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg1 = new THREE.Object3D();
+                    upperLeg1.add(leg);
+                    leg.position.set(-5, -20, 0);
+                    torso1.add(upperLeg1);
+                    upperLeg1.position.set(95, 80, 0);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg1 = new THREE.Object3D();
+                    lowerLeg1.position.set(0, -35, 0);
+                    upperLeg1.add(lowerLeg1);
+                    lowerLeg1.add(leg2);
+
+                    leg2.position.set(-5, -20, 0);
+
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg1L = new THREE.Object3D();
+                    upperLeg1L.add(legL);
+                    legL.position.set(-5, -20, 0);
+                    torso1.add(upperLeg1L);
+                    upperLeg1L.position.set(115, 80, 0);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg1L = new THREE.Object3D();
+                    lowerLeg1L.position.set(0, -35, 0);
+                    upperLeg1L.add(lowerLeg1L);
+                    lowerLeg1L.add(legL2);
+                    legL2.position.set(-5, -20, 0);
+                    //3
+                    /////////////////////2
+                    var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
+                    torso1 = new THREE.Object3D();
+                    var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    bodyMesh.position.set(-100, 105, 0);
+                    torso1.add(bodyMesh);
+                    scene.add(torso1);
+                    //torso1.position.set(0, 0, -35);
+                    /////////////////////
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm2 = new THREE.Object3D();
+                    upperArm2.add(arm);
+                    arm.position.set(-5, -20, 0);
+                    torso1.add(upperArm2);
+                    upperArm2.position.set(-125, 120, 0);
+
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm2 = new THREE.Object3D();
+                    lowerArm2.position.set(0, -40, 0);
+                    upperArm2.add(lowerArm2);
+                    lowerArm2.add(arm2);
+                    arm2.position.set(-5, -20, 0);
+
+
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm2L = new THREE.Object3D();
+                    upperArm2L.add(armL);
+                    armL.position.set(-5, -20, 0);
+                    torso1.add(upperArm2L);
+                    upperArm2L.position.set(-75, 120, 0);
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm2L = new THREE.Object3D();
+                    lowerArm2L.position.set(0, -40, 0);
+                    upperArm2L.add(lowerArm2L);
+                    lowerArm2L.add(armL2);
+                    armL2.position.set(-5, -20, 0);
+
+                    ////////////////////////////////
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg2 = new THREE.Object3D();
+                    upperLeg2.add(leg);
+                    leg.position.set(-5, -20, 0);
+                    torso1.add(upperLeg2);
+                    upperLeg2.position.set(-105, 80, 0);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg2 = new THREE.Object3D();
+                    lowerLeg2.position.set(0, -35, 0);
+                    upperLeg2.add(lowerLeg2);
+                    lowerLeg2.add(leg2);
+
+                    leg2.position.set(-5, -20, 0);
+
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg2L = new THREE.Object3D();
+                    upperLeg2L.add(legL);
+                    legL.position.set(-5, -20, 0);
+                    torso1.add(upperLeg2L);
+                    upperLeg2L.position.set(-85, 80, 0);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg2L = new THREE.Object3D();
+                    lowerLeg2L.position.set(0, -35, 0);
+                    upperLeg2L.add(lowerLeg2L);
+                    lowerLeg2L.add(legL2);
+                    legL2.position.set(-5, -20, 0);
+
+
+                    //4
+                    /////////////////////2
+                    var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
+                    torso1 = new THREE.Object3D();
+                    var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    bodyMesh.position.set(50, 105, 100);
+                    torso1.add(bodyMesh);
+                    scene.add(torso1);
+                    //torso1.position.set(0, 0, -35);
+                    /////////////////////
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm3 = new THREE.Object3D();
+                    upperArm3.add(arm);
+                    arm.position.set(-5, -20, 0);
+                    torso1.add(upperArm3);
+                    upperArm3.position.set(25, 120, 100);
+
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm3 = new THREE.Object3D();
+                    lowerArm3.position.set(0, -40, 0);
+                    upperArm3.add(lowerArm3);
+                    lowerArm3.add(arm2);
+                    arm2.position.set(-5, -20, 0);
+
+
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm3L = new THREE.Object3D();
+                    upperArm3L.add(armL);
+                    armL.position.set(-5, -20, 0);
+                    torso1.add(upperArm3L);
+                    upperArm3L.position.set(75, 120, 100);
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm3L = new THREE.Object3D();
+                    lowerArm3L.position.set(0, -40, 0);
+                    upperArm3L.add(lowerArm3L);
+                    lowerArm3L.add(armL2);
+                    armL2.position.set(-5, -20, 0);
+
+                    ////////////////////////////////
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg3 = new THREE.Object3D();
+                    upperLeg3.add(leg);
+                    leg.position.set(-5, -20, 0);
+                    torso1.add(upperLeg3);
+                    upperLeg3.position.set(45, 80, 100);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg3 = new THREE.Object3D();
+                    lowerLeg3.position.set(0, -35, 0);
+                    upperLeg3.add(lowerLeg3);
+                    lowerLeg3.add(leg2);
+
+                    leg2.position.set(-5, -20, 0);
+
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg3L = new THREE.Object3D();
+                    upperLeg3L.add(legL);
+                    legL.position.set(-5, -20, 0);
+                    torso1.add(upperLeg3L);
+                    upperLeg3L.position.set(65, 80, 100);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg3L = new THREE.Object3D();
+                    lowerLeg3L.position.set(0, -35, 0);
+                    upperLeg3L.add(lowerLeg3L);
+                    lowerLeg3L.add(legL2);
+                    legL2.position.set(-5, -20, 0);
+                    //5
+
+                    var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
+                    torso1 = new THREE.Object3D();
+                    var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    bodyMesh.position.set(-50, 105, 100);
+                    torso1.add(bodyMesh);
+                    scene.add(torso1);
+                    //torso1.position.set(0, 0, -35);
+                    /////////////////////
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm4 = new THREE.Object3D();
+                    upperArm4.add(arm);
+                    arm.position.set(-5, -20, 0);
+                    torso1.add(upperArm4);
+                    upperArm4.position.set(25 - 100, 120, 100);
+
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm4 = new THREE.Object3D();
+                    lowerArm4.position.set(0, -40, 0);
+                    upperArm4.add(lowerArm4);
+                    lowerArm4.add(arm2);
+                    arm2.position.set(-5, -20, 0);
+
+
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm4L = new THREE.Object3D();
+                    upperArm4L.add(armL);
+                    armL.position.set(-5, -20, 0);
+                    torso1.add(upperArm4L);
+                    upperArm4L.position.set(75 - 100, 120, 100);
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm4L = new THREE.Object3D();
+                    lowerArm4L.position.set(0, -40, 0);
+                    upperArm4L.add(lowerArm4L);
+                    lowerArm4L.add(armL2);
+                    armL2.position.set(-5, -20, 0);
+
+                    ////////////////////////////////
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg4 = new THREE.Object3D();
+                    upperLeg4.add(leg);
+                    leg.position.set(-5, -20, 0);
+                    torso1.add(upperLeg4);
+                    upperLeg4.position.set(45 - 100, 80, 100);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg4 = new THREE.Object3D();
+                    lowerLeg4.position.set(0, -35, 0);
+                    upperLeg4.add(lowerLeg4);
+                    lowerLeg4.add(leg2);
+
+                    leg2.position.set(-5, -20, 0);
+
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg4L = new THREE.Object3D();
+                    upperLeg4L.add(legL);
+                    legL.position.set(-5, -20, 0);
+                    torso1.add(upperLeg4L);
+                    upperLeg4L.position.set(65 - 100, 80, 100);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg4L = new THREE.Object3D();
+                    lowerLeg4L.position.set(0, -35, 0);
+                    upperLeg4L.add(lowerLeg4L);
+                    lowerLeg4L.add(legL2);
+                    legL2.position.set(-5, -20, 0);
+
+
+                    //6
+                    var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
+                    torso = new THREE.Object3D();
+                    var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    bodyMesh.position.set(0, 105, 200);
+                    torso.add(bodyMesh);
+                    scene.add(torso);
+                    //torso.position.set(0, 0, -35);
+                    /////////////////////
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm5 = new THREE.Object3D();
+                    upperArm5.add(arm);
+                    arm.position.set(-5, -20, 0);
+                    torso.add(upperArm5);
+                    upperArm5.position.set(-25, 120, 200);
+
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm5 = new THREE.Object3D();
+                    lowerArm5.position.set(0, -40, 0);
+                    upperArm5.add(lowerArm5);
+                    lowerArm5.add(arm2);
+
+                    arm2.position.set(-5, -20, 0);
+
+
+
+                    var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperArm5L = new THREE.Object3D();
+                    upperArm5L.add(armL);
+                    armL.position.set(-5, -20, 0);
+                    torso.add(upperArm5L);
+                    upperArm5L.position.set(25, 120, 200);
+
+
+                    boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+                    armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerArm5L = new THREE.Object3D();
+                    lowerArm5L.position.set(0, -40, 0);
+                    upperArm5L.add(lowerArm5L);
+                    lowerArm5L.add(armL2);
+                    armL2.position.set(-5, -20, 0);
+
+
+
+                    ////////////////////////////////
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg5 = new THREE.Object3D();
+                    upperLeg5.add(leg);
+                    leg.position.set(-5, -20, 0);
+                    torso.add(upperLeg5);
+                    upperLeg5.position.set(-5, 80, 200);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg5 = new THREE.Object3D();
+                    lowerLeg5.position.set(0, -35, 0);
+                    upperLeg5.add(lowerLeg5);
+                    lowerLeg5.add(leg2);
+
+                    leg2.position.set(-5, -20, 0);
+
+                    ``
+
+
+
+                    var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+                    var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    upperLeg5L = new THREE.Object3D();
+                    upperLeg5L.add(legL);
+                    legL.position.set(-5, -20, 0);
+                    torso.add(upperLeg5L);
+                    upperLeg5L.position.set(15, 80, 200);
+
+                    boxGeometry = new THREE.BoxGeometry(15, 50, 15);
+                    legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+                    lowerLeg5L = new THREE.Object3D();
+                    lowerLeg5L.position.set(0, -35, 0);
+                    upperLeg5L.add(lowerLeg5L);
+                    lowerLeg5L.add(legL2);
+                    legL2.position.set(-5, -20, 0);
+
+
+
+
+                    /////////////////////////////////
+                    var gridXZ = new THREE.GridHelper(500, 10);
+                    gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+                    scene.add(gridXZ);
+
+                    window.addEventListener('resize', onWindowResize, false);
+                    /////////////////
+                    gcontrols = {
+                        shoulderRZ: 0.01,
+                        shoulderRY: 0.1,
+                        shoulderRX: 0.1,
+                        shoulderLZ: 0.01,
+                        shoulderLY: 0.09,
+                        shoulderLX: 0.1,
+                        //
+                        LegRZ: 0.01,
+                        LegRY: 0.1,
+                        LegRX: 0.1,
+                        LegLZ: 0.01,
+                        LegLY: 0.09,
+                        LegLX: 0.1,
+                        elbowX: 0.1,
+                        elbowLX: 0.1,
+                        torsoY: 0.1,
+
+                    };
+
+                    gui = new dat.GUI();
+                    gui.remember(gcontrols);
+
+                    gui.domElement.id = 'gui';
+                    gui.add(gcontrols, 'shoulderRZ', -3.14, 3);
+                    gui.add(gcontrols, 'shoulderRY', -3.2, 3);
+                    gui.add(gcontrols, 'shoulderRX', -3.2, 3);
+                    gui.add(gcontrols, 'shoulderLZ', -3.14, 3);
+                    gui.add(gcontrols, 'shoulderLY', -3.2, 3);
+                    gui.add(gcontrols, 'shoulderLX', -3.2, 3);
+                    ///
+                    gui.add(gcontrols, 'LegRZ', -3.14, 3);
+                    gui.add(gcontrols, 'LegRY', -3.2, 3);
+                    gui.add(gcontrols, 'LegRX', -3.2, 3);
+                    gui.add(gcontrols, 'LegLZ', -3.14, 3);
+                    gui.add(gcontrols, 'LegLY', -3.2, 3);
+                    gui.add(gcontrols, 'LegLX', -3.2, 3);
+                    gui.add(gcontrols, 'elbowX', -3, 3);
+                    gui.add(gcontrols, 'elbowLX', -3, 3);
+                    gui.add(gcontrols, 'torsoY', -3, 3);
+
                 }
 
 
-
-            }
-        }
-        init();
-        animate();
-
-
-        function init() {
-            var width = window.innerWidth;
-            var height = window.innerHeight;
-
-            renderer = new THREE.WebGLRenderer({
-                antialias: true
-            });
-            renderer.setSize(width, height);
-            renderer.setClearColor(0x888888);
-
-            document.body.appendChild(renderer.domElement);
-
-            scene = new THREE.Scene();
-
-            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
-            camera.position.y = 160;
-            camera.position.z = 400;
-            camera.lookAt(new THREE.Vector3(0, 0, 0));
-            scene.add(camera);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-            var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
-            torso = new THREE.Object3D();
-            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            bodyMesh.position.set(0, 105, 0);
-            torso.add(bodyMesh);
-            scene.add(torso);
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm = new THREE.Object3D();
-            upperArm.add(arm);
-            arm.position.set(-5, -20, 0);
-            torso.add(upperArm);
-            upperArm.position.set(-25, 120, 0);
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm = new THREE.Object3D();
-            lowerArm.position.set(0, -40, 0);
-            upperArm.add(lowerArm);
-            lowerArm.add(arm2);
-            arm2.position.set(-5, -20, 0);
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArmL = new THREE.Object3D();
-            upperArmL.add(armL);
-            armL.position.set(-5, -
-                20, 0);
-            torso.add(upperArmL);
-            upperArmL.position.set(25, 120, 0);
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArmL = new THREE.Object3D();
-            lowerArmL.position.set(0, -40, 0);
-            upperArmL.add(lowerArmL);
-            lowerArmL.add(armL2);
-            armL2.position.set(-5, -20, 0); ////////////////////////////////
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg = new
-            THREE.Object3D();
-            upperLeg.add(leg);
-            leg.position.set(-5, -20, 0);
-            torso.add(upperLeg);
-            upperLeg.position.set(-5, 80, 0);
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg = new
-            THREE.Object3D();
-            lowerLeg.position.set(0, -35, 0);
-            upperLeg.add(lowerLeg);
-            lowerLeg.add(leg2);
-            leg2.position.set(-5, -20, 0);
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var legL = new THREE.Mesh(boxGeometry,
-                new THREE.MeshNormalMaterial());
-            upperLegL = new THREE.Object3D();
-            upperLegL.add(legL);
-            legL.position.set(-5, -20, 0);
-            torso.add(upperLegL);
-            upperLegL.position.set(15, 80, 0);
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            legL2 = new THREE.Mesh(boxGeometry,
-                new THREE.MeshNormalMaterial());
-            lowerLegL = new THREE.Object3D();
-            lowerLegL.position.set(0, -35, 0);
-            upperLegL.add(lowerLegL);
-            lowerLegL.add(legL2);
-            legL2.position.set(-5, -20, 0);
-            /////////////////////2
-            var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
-            torso1 = new THREE.Object3D();
-            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            bodyMesh.position.set(100, 105, 0);
-            torso1.add(bodyMesh);
-            scene.add(torso1);
-            //torso1.position.set(0, 0, -35);
-            /////////////////////
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm1 = new THREE.Object3D();
-            upperArm1.add(arm);
-            arm.position.set(-5, -20, 0);
-            torso1.add(upperArm1);
-            upperArm1.position.set(75, 120, 0);
-
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm1 = new THREE.Object3D();
-            lowerArm1.position.set(0, -40, 0);
-            upperArm1.add(lowerArm1);
-            lowerArm1.add(arm2);
-            arm2.position.set(-5, -20, 0);
-
-
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm1L = new THREE.Object3D();
-            upperArm1L.add(armL);
-            armL.position.set(-5, -20, 0);
-            torso1.add(upperArm1L);
-            upperArm1L.position.set(125, 120, 0);
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm1L = new THREE.Object3D();
-            lowerArm1L.position.set(0, -40, 0);
-            upperArm1L.add(lowerArm1L);
-            lowerArm1L.add(armL2);
-            armL2.position.set(-5, -20, 0);
-
-            ////////////////////////////////
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg1 = new THREE.Object3D();
-            upperLeg1.add(leg);
-            leg.position.set(-5, -20, 0);
-            torso1.add(upperLeg1);
-            upperLeg1.position.set(95, 80, 0);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg1 = new THREE.Object3D();
-            lowerLeg1.position.set(0, -35, 0);
-            upperLeg1.add(lowerLeg1);
-            lowerLeg1.add(leg2);
-
-            leg2.position.set(-5, -20, 0);
-
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg1L = new THREE.Object3D();
-            upperLeg1L.add(legL);
-            legL.position.set(-5, -20, 0);
-            torso1.add(upperLeg1L);
-            upperLeg1L.position.set(115, 80, 0);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg1L = new THREE.Object3D();
-            lowerLeg1L.position.set(0, -35, 0);
-            upperLeg1L.add(lowerLeg1L);
-            lowerLeg1L.add(legL2);
-            legL2.position.set(-5, -20, 0);
-            //3
-            /////////////////////2
-            var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
-            torso1 = new THREE.Object3D();
-            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            bodyMesh.position.set(-100, 105, 0);
-            torso1.add(bodyMesh);
-            scene.add(torso1);
-            //torso1.position.set(0, 0, -35);
-            /////////////////////
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm2 = new THREE.Object3D();
-            upperArm2.add(arm);
-            arm.position.set(-5, -20, 0);
-            torso1.add(upperArm2);
-            upperArm2.position.set(-125, 120, 0);
-
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm2 = new THREE.Object3D();
-            lowerArm2.position.set(0, -40, 0);
-            upperArm2.add(lowerArm2);
-            lowerArm2.add(arm2);
-            arm2.position.set(-5, -20, 0);
-
-
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm2L = new THREE.Object3D();
-            upperArm2L.add(armL);
-            armL.position.set(-5, -20, 0);
-            torso1.add(upperArm2L);
-            upperArm2L.position.set(-75, 120, 50);
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm2L = new THREE.Object3D();
-            lowerArm2L.position.set(0, -40, 0);
-            upperArm2L.add(lowerArm2L);
-            lowerArm2L.add(armL2);
-            armL2.position.set(-5, -20, 0);
-
-            ////////////////////////////////
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg2 = new THREE.Object3D();
-            upperLeg2.add(leg);
-            leg.position.set(-5, -20, 0);
-            torso1.add(upperLeg2);
-            upperLeg2.position.set(-105, 80, 0);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg2 = new THREE.Object3D();
-            lowerLeg2.position.set(0, -35, 0);
-            upperLeg2.add(lowerLeg2);
-            lowerLeg2.add(leg2);
-
-            leg2.position.set(-5, -20, 0);
-
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg2L = new THREE.Object3D();
-            upperLeg2L.add(legL);
-            legL.position.set(-5, -20, 0);
-            torso1.add(upperLeg2L);
-            upperLeg2L.position.set(-85, 80, 0);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg2L = new THREE.Object3D();
-            lowerLeg2L.position.set(0, -35, 0);
-            upperLeg2L.add(lowerLeg2L);
-            lowerLeg2L.add(legL2);
-            legL2.position.set(-5, -20, 0);
-
-
-            //4
-            /////////////////////2
-            var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
-            torso1 = new THREE.Object3D();
-            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            bodyMesh.position.set(50, 105, 100);
-            torso1.add(bodyMesh);
-            scene.add(torso1);
-            //torso1.position.set(0, 0, -35);
-            /////////////////////
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm3 = new THREE.Object3D();
-            upperArm3.add(arm);
-            arm.position.set(-5, -20, 0);
-            torso1.add(upperArm3);
-            upperArm3.position.set(25, 120, 100);
-
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm3 = new THREE.Object3D();
-            lowerArm3.position.set(0, -40, 0);
-            upperArm3.add(lowerArm3);
-            lowerArm3.add(arm2);
-            arm2.position.set(-5, -20, 0);
-
-
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm3L = new THREE.Object3D();
-            upperArm3L.add(armL);
-            armL.position.set(-5, -20, 0);
-            torso1.add(upperArm3L);
-            upperArm3L.position.set(75, 120, 100);
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm3L = new THREE.Object3D();
-            lowerArm3L.position.set(0, -40, 0);
-            upperArm3L.add(lowerArm3L);
-            lowerArm3L.add(armL2);
-            armL2.position.set(-5, -20, 0);
-
-            ////////////////////////////////
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg3 = new THREE.Object3D();
-            upperLeg3.add(leg);
-            leg.position.set(-5, -20, 0);
-            torso1.add(upperLeg3);
-            upperLeg3.position.set(45, 80, 100);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg3 = new THREE.Object3D();
-            lowerLeg3.position.set(0, -35, 0);
-            upperLeg3.add(lowerLeg3);
-            lowerLeg3.add(leg2);
-
-            leg2.position.set(-5, -20, 0);
-
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg3L = new THREE.Object3D();
-            upperLeg3L.add(legL);
-            legL.position.set(-5, -20, 0);
-            torso1.add(upperLeg3L);
-            upperLeg3L.position.set(65, 80, 100);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg3L = new THREE.Object3D();
-            lowerLeg3L.position.set(0, -35, 0);
-            upperLeg3L.add(lowerLeg3L);
-            lowerLeg3L.add(legL2);
-            legL2.position.set(-5, -20, 0);
-            //5
-
-            var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
-            torso1 = new THREE.Object3D();
-            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            bodyMesh.position.set(-50, 105, 100);
-            torso1.add(bodyMesh);
-            scene.add(torso1);
-            //torso1.position.set(0, 0, -35);
-            /////////////////////
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm4 = new THREE.Object3D();
-            upperArm4.add(arm);
-            arm.position.set(-5, -20, 0);
-            torso1.add(upperArm4);
-            upperArm4.position.set(25 - 100, 120, 100);
-
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm4 = new THREE.Object3D();
-            lowerArm4.position.set(0, -40, 0);
-            upperArm4.add(lowerArm4);
-            lowerArm4.add(arm2);
-            arm2.position.set(-5, -20, 0);
-
-
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm4L = new THREE.Object3D();
-            upperArm4L.add(armL);
-            armL.position.set(-5, -20, 0);
-            torso1.add(upperArm4L);
-            upperArm4L.position.set(75 - 100, 120, 100);
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm4L = new THREE.Object3D();
-            lowerArm4L.position.set(0, -40, 0);
-            upperArm4L.add(lowerArm4L);
-            lowerArm4L.add(armL2);
-            armL2.position.set(-5, -20, 0);
-
-            ////////////////////////////////
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg4 = new THREE.Object3D();
-            upperLeg4.add(leg);
-            leg.position.set(-5, -20, 0);
-            torso1.add(upperLeg4);
-            upperLeg4.position.set(45 - 100, 80, 100);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg4 = new THREE.Object3D();
-            lowerLeg4.position.set(0, -35, 0);
-            upperLeg4.add(lowerLeg4);
-            lowerLeg4.add(leg2);
-
-            leg2.position.set(-5, -20, 0);
-
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg4L = new THREE.Object3D();
-            upperLeg4L.add(legL);
-            legL.position.set(-5, -20, 0);
-            torso1.add(upperLeg4L);
-            upperLeg4L.position.set(65 - 100, 80, 100);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg4L = new THREE.Object3D();
-            lowerLeg4L.position.set(0, -35, 0);
-            upperLeg4L.add(lowerLeg4L);
-            lowerLeg4L.add(legL2);
-            legL2.position.set(-5, -20, 0);
-
-
-            //6
-            var boxGeometry = new THREE.BoxGeometry(50, 60, 30);
-            torso = new THREE.Object3D();
-            var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            bodyMesh.position.set(0, 105, 200);
-            torso.add(bodyMesh);
-            scene.add(torso);
-            //torso.position.set(0, 0, -35);
-            /////////////////////
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm5 = new THREE.Object3D();
-            upperArm5.add(arm);
-            arm.position.set(-5, -20, 0);
-            torso.add(upperArm5);
-            upperArm5.position.set(-25, 120, 200);
-
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm5 = new THREE.Object3D();
-            lowerArm5.position.set(0, -40, 0);
-            upperArm5.add(lowerArm5);
-            lowerArm5.add(arm2);
-
-            arm2.position.set(-5, -20, 0);
-
-
-
-            var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperArm5L = new THREE.Object3D();
-            upperArm5L.add(armL);
-            armL.position.set(-5, -20, 0);
-            torso.add(upperArm5L);
-            upperArm5L.position.set(25, 120, 200);
-
-
-            boxGeometry = new THREE.BoxGeometry(10, 40, 10);
-            armL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerArm5L = new THREE.Object3D();
-            lowerArm5L.position.set(0, -40, 0);
-            upperArm5L.add(lowerArm5L);
-            lowerArm5L.add(armL2);
-            armL2.position.set(-5, -20, 0);
-
-
-
-            ////////////////////////////////
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg5 = new THREE.Object3D();
-            upperLeg5.add(leg);
-            leg.position.set(-5, -20, 0);
-            torso.add(upperLeg5);
-            upperLeg5.position.set(-5, 80, 200);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg5 = new THREE.Object3D();
-            lowerLeg5.position.set(0, -35, 0);
-            upperLeg5.add(lowerLeg5);
-            lowerLeg5.add(leg2);
-
-            leg2.position.set(-5, -20, 0);
-
-            ``
-
-
-
-            var boxGeometry = new THREE.BoxGeometry(15, 30, 15);
-            var legL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            upperLeg5L = new THREE.Object3D();
-            upperLeg5L.add(legL);
-            legL.position.set(-5, -20, 0);
-            torso.add(upperLeg5L);
-            upperLeg5L.position.set(15, 80, 200);
-
-            boxGeometry = new THREE.BoxGeometry(15, 50, 15);
-            legL2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
-            lowerLeg5L = new THREE.Object3D();
-            lowerLeg5L.position.set(0, -35, 0);
-            upperLeg5L.add(lowerLeg5L);
-            lowerLeg5L.add(legL2);
-            legL2.position.set(-5, -20, 0);
-
-
-
-
-            /////////////////////////////////
-            var gridXZ = new THREE.GridHelper(500, 10);
-            gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
-            scene.add(gridXZ);
-
-            window.addEventListener('resize', onWindowResize, false);
-            /////////////////
-            gcontrols = {
-                shoulderRZ: 0.01,
-                shoulderRY: 0.1,
-                shoulderRX: 0.1,
-                shoulderLZ: 0.01,
-                shoulderLY: 0.09,
-                shoulderLX: 0.1,
-                //
-                LegRZ: 0.01,
-                LegRY: 0.1,
-                LegRX: 0.1,
-                LegLZ: 0.01,
-                LegLY: 0.09,
-                LegLX: 0.1,
-                elbowX: 0.1,
-                elbowLX: 0.1,
-                torsoY: 0.1,
-
-            };
-
-            gui = new dat.GUI();
-            gui.remember(gcontrols);
-
-            gui.domElement.id = 'gui';
-            gui.add(gcontrols, 'shoulderRZ', -3.14, 3);
-            gui.add(gcontrols, 'shoulderRY', -3.2, 3);
-            gui.add(gcontrols, 'shoulderRX', -3.2, 3);
-            gui.add(gcontrols, 'shoulderLZ', -3.14, 3);
-            gui.add(gcontrols, 'shoulderLY', -3.2, 3);
-            gui.add(gcontrols, 'shoulderLX', -3.2, 3);
-            ///
-            gui.add(gcontrols, 'LegRZ', -3.14, 3);
-            gui.add(gcontrols, 'LegRY', -3.2, 3);
-            gui.add(gcontrols, 'LegRX', -3.2, 3);
-            gui.add(gcontrols, 'LegLZ', -3.14, 3);
-            gui.add(gcontrols, 'LegLY', -3.2, 3);
-            gui.add(gcontrols, 'LegLX', -3.2, 3);
-            gui.add(gcontrols, 'elbowX', -3, 3);
-            gui.add(gcontrols, 'elbowLX', -3, 3);
-            gui.add(gcontrols, 'torsoY', -3, 3);
-
-        }
-
-
-        function animate() {
-            requestAnimationFrame(animate);
-            update();
-            render();
-        }
-
-        function update() {
-            controls.update();
-            keyframe(clock.getElapsedTime());
-        }
-
-        function onWindowResize() {
-            var width = window.innerWidth,
-                height = window.innerHeight;
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
-        }
-
-        function keyframe(t) {
-            var s = ((t - ts) % T1) / T1;
-            console.log("key1T" + "=" + s);
-
-            for (var i = 0; i < keys1.length; i++) {
-                if (keys1[i][0] > s) break;
-            }
-
-            // take i-1
-            var ii = i - 1;
-            var a = (s - keys1[ii][0]) / (keys1[ii + 1][0] - keys1[ii][0]);
-            intKey1 = []
-            for (var j = 0; j < 7; j++) {
-                intKey1.push(keys1[ii][1][j] * (1 - a) + keys1[ii + 1][1][j] * a);
-            }
-            //console.log(intKey1);
-
-            var x = ((t - ts) % T2) / T2;
-            for (var a = 0; a < keys2.length; a++) {
-                if (keys2[a][0] > x) break;
-            }
-            console.log("key2T" + "=" + x);
-            // take i-1
-            var aa = a - 1;
-            var a = (x - keys2[aa][0]) / (keys2[aa + 1][0] - keys2[aa][0]);
-            intKey2 = []
-            for (var z = 0; z < 5; z++) {
-                intKey2.push(keys2[aa][1][z] * (1 - a) + keys2[aa + 1][1][z] * a);
-            }
-            //console.log(intKey2);
-            var f = ((t - ts) % T3) / T3;
-            for (var c = 0; c < keys3.length; c++) {
-                if (keys3[c][0] > x) break;
-            }
-            console.log("key3T" + "=" + x);
-            // take i-1
-            var cc = c - 1;
-            var c = (f - keys3[cc][0]) / (keys3[cc + 1][0] - keys3[cc][0]);
-            intKey3 = []
-            for (var s = 0; s < 5; s++) {
-                intKey3.push(keys3[cc][1][s] * (1 - c) + keys3[cc + 1][1][s] * c);
-            }
-        }
-
-        function render() {
-
-            upperLeg.rotation.order = 'ZXY';
-
-            upperLeg.rotation.z = gcontrols.LegRZ;
-            upperLeg.rotation.y = gcontrols.LegRY;
-            upperLeg.rotation.x = gcontrols.LegRX;
-            lowerLeg.rotation.x = gcontrols.elbowX;
-            torso.rotation.y = gcontrols.torsoY;
-
-
-            ////////////////
-
-            upperLeg.rotation.x = intKey3[0];
-            upperLegL.rotation.x = intKey3[1];
-            lowerLeg.rotation.x = intKey3[2];
-            lowerLegL.rotation.x = intKey3[3];
-
-            upperArm.rotation.z = intKey1[0];
-            upperArm.rotation.y = intKey1[1];
-            upperArm.rotation.x = intKey1[2];
-
-            lowerArm.rotation.x = intKey1[3];
-            torso.rotation.y = intKey1[4];
-
-            upperArmL.rotation.z = intKey2[0];
-            upperArmL.rotation.y = intKey2[1];
-            upperArmL.rotation.x = intKey2[2];
-            lowerArmL.rotation.x = -intKey1[3];
-
-            upperLeg1.rotation.x = intKey3[0];
-            upperLeg1L.rotation.x = intKey3[1];
-            lowerLeg1.rotation.x = intKey3[2];
-            lowerLeg1L.rotation.x = intKey3[3];
-
-            upperArm1.rotation.z = intKey1[0];
-            upperArm1.rotation.y = intKey1[1];
-            upperArm1.rotation.x = intKey1[2];
-
-            lowerArm1.rotation.x = intKey1[3];
-            torso.rotation.y = intKey1[4];
-
-            upperArm1L.rotation.z = intKey2[0];
-            upperArm1L.rotation.y = intKey2[1];
-            upperArm1L.rotation.x = intKey2[2];
-            lowerArm1L.rotation.x = -intKey1[3];
-
-            upperLeg2.rotation.x = intKey3[0];
-            upperLeg2L.rotation.x = intKey3[1];
-            lowerLeg2.rotation.x = intKey3[2];
-            lowerLeg2L.rotation.x = intKey3[3];
-
-            upperArm2.rotation.z = intKey1[0];
-            upperArm2.rotation.y = intKey1[1];
-            upperArm2.rotation.x = intKey1[2];
-
-            lowerArm2.rotation.x = intKey1[3];
-            torso.rotation.y = intKey1[4];
-
-            upperArm2L.rotation.z = intKey2[0];
-            upperArm2L.rotation.y = intKey2[1];
-            upperArm2L.rotation.x = intKey2[2];
-            lowerArm2L.rotation.x = -intKey1[3];
-
-
-            upperLeg3.rotation.x = intKey3[0];
-            upperLeg3L.rotation.x = intKey3[1];
-            lowerLeg3.rotation.x = intKey3[2];
-            lowerLeg3L.rotation.x = intKey3[3];
-
-            upperArm3.rotation.z = intKey1[0];
-            upperArm3.rotation.y = intKey1[1];
-            upperArm3.rotation.x = intKey1[2];
-
-            lowerArm3.rotation.x = intKey1[3];
-            torso.rotation.y = intKey1[4];
-
-            upperArm3L.rotation.z = intKey2[0];
-            upperArm3L.rotation.y = intKey2[1];
-            upperArm3L.rotation.x = intKey2[2];
-            lowerArm3L.rotation.x = -intKey1[3];
-            //
-            upperLeg4.rotation.x = intKey3[0];
-            upperLeg4L.rotation.x = intKey3[1];
-            lowerLeg4.rotation.x = intKey3[2];
-            lowerLeg4L.rotation.x = intKey3[3];
-
-            upperArm4.rotation.z = intKey1[0];
-            upperArm4.rotation.y = intKey1[1];
-            upperArm4.rotation.x = intKey1[2];
-
-            lowerArm4.rotation.x = intKey1[3];
-            torso.rotation.y = intKey1[4];
-
-            upperArm4L.rotation.z = intKey2[0];
-            upperArm4L.rotation.y = intKey2[1];
-            upperArm4L.rotation.x = intKey2[2];
-            lowerArm4L.rotation.x = -intKey1[3];
-
-            //
-            upperLeg5.rotation.x = intKey3[0];
-            upperLeg5L.rotation.x = intKey3[1];
-            lowerLeg5.rotation.x = intKey3[2];
-            lowerLeg5L.rotation.x = intKey3[3];
-
-            upperArm5.rotation.z = intKey1[0];
-            upperArm5.rotation.y = intKey1[1];
-            upperArm5.rotation.x = intKey1[2];
-
-            lowerArm5.rotation.x = intKey1[3];
-            torso.rotation.y = intKey1[4];
-
-            upperArm5L.rotation.z = intKey2[0];
-            upperArm5L.rotation.y = intKey2[1];
-            upperArm5L.rotation.x = intKey2[2];
-            lowerArm5L.rotation.x = -intKey1[3];
-
-            renderer.render(scene, camera);
-        }
+                function animate() {
+                    requestAnimationFrame(animate);
+                    update();
+                    render();
+                }
+
+                function update() {
+                    controls.update();
+                    keyframe(clock.getElapsedTime());
+                }
+
+                function onWindowResize() {
+                    var width = window.innerWidth,
+                        height = window.innerHeight;
+                    camera.aspect = width / height;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(width, height);
+                }
+
+                function keyframe(t) {
+                    var s = ((t - ts) % T1) / T1;
+                    console.log("key1T" + "=" + s);
+
+                    for (var i = 0; i < keys1.length; i++) {
+                        if (keys1[i][0] > s) break;
+                    }
+
+                    // take i-1
+                    var ii = i - 1;
+                    var a = (s - keys1[ii][0]) / (keys1[ii + 1][0] - keys1[ii][0]);
+                    intKey1 = []
+                    for (var j = 0; j < 7; j++) {
+                        intKey1.push(keys1[ii][1][j] * (1 - a) + keys1[ii + 1][1][j] * a);
+                    }
+                    //console.log(intKey1);
+
+                    var x = ((t - ts) % T2) / T2;
+                    for (var a = 0; a < keys2.length; a++) {
+                        if (keys2[a][0] > x) break;
+                    }
+                    console.log("key2T" + "=" + x);
+                    // take i-1
+                    var aa = a - 1;
+                    var a = (x - keys2[aa][0]) / (keys2[aa + 1][0] - keys2[aa][0]);
+                    intKey2 = []
+                    for (var z = 0; z < 5; z++) {
+                        intKey2.push(keys2[aa][1][z] * (1 - a) + keys2[aa + 1][1][z] * a);
+                    }
+                    //console.log(intKey2);
+                    var f = ((t - ts) % T3) / T3;
+                    for (var c = 0; c < keys3.length; c++) {
+                        if (keys3[c][0] > x) break;
+                    }
+                    console.log("key3T" + "=" + x);
+                    // take i-1
+                    var cc = c - 1;
+                    var c = (f - keys3[cc][0]) / (keys3[cc + 1][0] - keys3[cc][0]);
+                    intKey3 = []
+                    for (var s = 0; s < 5; s++) {
+                        intKey3.push(keys3[cc][1][s] * (1 - c) + keys3[cc + 1][1][s] * c);
+                    }
+                }
+
+                function render() {
+
+                    upperLeg.rotation.order = 'ZXY';
+
+                    upperLeg.rotation.z = gcontrols.LegRZ;
+                    upperLeg.rotation.y = gcontrols.LegRY;
+                    upperLeg.rotation.x = gcontrols.LegRX;
+                    lowerLeg.rotation.x = gcontrols.elbowX;
+                    torso.rotation.y = gcontrols.torsoY;
+
+
+                    ////////////////
+
+                    upperLeg.rotation.x = intKey3[0];
+                    upperLegL.rotation.x = intKey3[1];
+                    lowerLeg.rotation.x = intKey3[2];
+                    lowerLegL.rotation.x = intKey3[3];
+
+                    upperArm.rotation.z = intKey1[0];
+                    upperArm.rotation.y = intKey1[1];
+                    upperArm.rotation.x = intKey1[2];
+
+                    lowerArm.rotation.x = intKey1[3];
+                    torso.rotation.y = intKey1[4];
+
+                    upperArmL.rotation.z = intKey2[0];
+                    upperArmL.rotation.y = intKey2[1];
+                    upperArmL.rotation.x = intKey2[2];
+                    lowerArmL.rotation.x = -intKey1[3];
+
+                    upperLeg1.rotation.x = intKey3[0];
+                    upperLeg1L.rotation.x = intKey3[1];
+                    lowerLeg1.rotation.x = intKey3[2];
+                    lowerLeg1L.rotation.x = intKey3[3];
+
+                    upperArm1.rotation.z = intKey1[0];
+                    upperArm1.rotation.y = intKey1[1];
+                    upperArm1.rotation.x = intKey1[2];
+
+                    lowerArm1.rotation.x = intKey1[3];
+                    torso.rotation.y = intKey1[4];
+
+                    upperArm1L.rotation.z = intKey2[0];
+                    upperArm1L.rotation.y = intKey2[1];
+                    upperArm1L.rotation.x = intKey2[2];
+                    lowerArm1L.rotation.x = -intKey1[3];
+
+                    upperLeg2.rotation.x = intKey3[0];
+                    upperLeg2L.rotation.x = intKey3[1];
+                    lowerLeg2.rotation.x = intKey3[2];
+                    lowerLeg2L.rotation.x = intKey3[3];
+
+                    upperArm2.rotation.z = intKey1[0];
+                    upperArm2.rotation.y = intKey1[1];
+                    upperArm2.rotation.x = intKey1[2];
+
+                    lowerArm2.rotation.x = intKey1[3];
+                    torso.rotation.y = intKey1[4];
+
+                    upperArm2L.rotation.z = intKey2[0];
+                    upperArm2L.rotation.y = intKey2[1];
+                    upperArm2L.rotation.x = intKey2[2];
+                    lowerArm2L.rotation.x = -intKey1[3];
+
+
+                    upperLeg3.rotation.x = intKey3[0];
+                    upperLeg3L.rotation.x = intKey3[1];
+                    lowerLeg3.rotation.x = intKey3[2];
+                    lowerLeg3L.rotation.x = intKey3[3];
+
+                    upperArm3.rotation.z = intKey1[0];
+                    upperArm3.rotation.y = intKey1[1];
+                    upperArm3.rotation.x = intKey1[2];
+
+                    lowerArm3.rotation.x = intKey1[3];
+                    torso.rotation.y = intKey1[4];
+
+                    upperArm3L.rotation.z = intKey2[0];
+                    upperArm3L.rotation.y = intKey2[1];
+                    upperArm3L.rotation.x = intKey2[2];
+                    lowerArm3L.rotation.x = -intKey1[3];
+                    //
+                    upperLeg4.rotation.x = intKey3[0];
+                    upperLeg4L.rotation.x = intKey3[1];
+                    lowerLeg4.rotation.x = intKey3[2];
+                    lowerLeg4L.rotation.x = intKey3[3];
+
+                    upperArm4.rotation.z = intKey1[0];
+                    upperArm4.rotation.y = intKey1[1];
+                    upperArm4.rotation.x = intKey1[2];
+
+                    lowerArm4.rotation.x = intKey1[3];
+                    torso.rotation.y = intKey1[4];
+
+                    upperArm4L.rotation.z = intKey2[0];
+                    upperArm4L.rotation.y = intKey2[1];
+                    upperArm4L.rotation.x = intKey2[2];
+                    lowerArm4L.rotation.x = -intKey1[3];
+
+                    //
+                    upperLeg5.rotation.x = intKey3[0];
+                    upperLeg5L.rotation.x = intKey3[1];
+                    lowerLeg5.rotation.x = intKey3[2];
+                    lowerLeg5L.rotation.x = intKey3[3];
+
+                    upperArm5.rotation.z = intKey1[0];
+                    upperArm5.rotation.y = intKey1[1];
+                    upperArm5.rotation.x = intKey1[2];
+
+                    lowerArm5.rotation.x = intKey1[3];
+                    torso.rotation.y = intKey1[4];
+
+                    upperArm5L.rotation.z = intKey2[0];
+                    upperArm5L.rotation.y = intKey2[1];
+                    upperArm5L.rotation.x = intKey2[2];
+                    lowerArm5L.rotation.x = -intKey1[3];
+
+                    renderer.render(scene, camera);
+                }
     </script>
 </body>
 
