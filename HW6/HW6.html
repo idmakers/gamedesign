@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<style>
+    #info {
+        position: absolute;
+        top: 0px;
+        width: 100%;
+        padding: 10px;
+        text-align: center;
+        color: #ffff00
+    }
+
+    body {
+        overflow: hidden;
+    }
+</style>
+
+<head>
+    <title></title>
+    <div id="info">HW6
+        <br></div>
+</head>
+
+<body>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+    <script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
+    <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+
+    <script>
+        var CCD_axis = function(axis, id) {
+            this.jointid = id;
+            this.axis = axis.clone();
+            this.limits = new THREE.Vector2(-1e4, 1e4); // default: no limits
+        }
+
+        function CLAMP(value, lo, hi) {
+            if (value < lo) return lo;
+            if (value > hi) return hi;
+            return value;
+        }
+
+        function proj2plane(p, n)
+        // p: the vector to be projected
+        // n: the normal defining the projection plane (unit vector)
+        {
+            var nclone = n.clone();
+            var pclone = p.clone();
+
+            nclone.multiplyScalar(p.dot(n)); // (p.n)n;
+            pclone.sub(nclone);
+            return pclone;
+        }
+
+
+        function ik_ccd(target, theta) {
+            var end = new THREE.Vector3();
+            var base = new THREE.Vector3();
+
+            var njoints = axes[axes.length - 1].jointid + 1;
+            var joints = [];
+            for (var i = 0; i <= njoints; i++) joints[i] = new THREE.Vector3();
+
+            fk(theta, joints);
+            end.copy(joints[njoints]);
+
+            // convergence
+            var eps = 1e-3,
+                MAXITER = 10;
+
+            var t_target = new THREE.Vector3();
+            var t_end = new THREE.Vector3();
+            var tmpV = new THREE.Vector3();
+
+            // iteration
+
+            for (var iter = 0; iter < MAXITER; iter++) {
+                for (var i = axes.length - 1; i >= 0; i--) {
+                    base.copy(joints[axes[i].jointid]);
+
+                    // this part is quite different from the C counterpart
+                    var axis = axes[i].axis.clone();
+                    for (var j = i - 1; j >= 0; j--)
+                        axis.applyMatrix4(new THREE.Matrix4().makeRotationAxis(axes[j].axis, theta[j]));
+
+                    tmpV.subVectors(target, base);
+                    tmpV = proj2plane(tmpV, axis);
+                    t_target.copy(tmpV.normalize());
+
+                    tmpV.subVectors(end, base);
+                    tmpV = proj2plane(tmpV, axis);
+                    t_end.copy(tmpV.normalize());
+
+                    var dotV = t_end.dot(t_target);
+                    var angle = Math.acos(CLAMP(dotV, -1, 1));
+                    tmpV.crossVectors(t_end, t_target);
+                    var sign = tmpV.dot(axis) > 0 ? 1 : -1;
+                    theta[i] += sign * angle;
+
+                    // joint limit [-2.4, -0.1]
+                    theta[i] = CLAMP(theta[i], axes[i].limits.x, axes[i].limits.y)
+
+                    fk(theta, joints);
+                    end.copy(joints[joints.length - 1]); // was a bug ... by setting joints[2]
+
+                    if (end.distanceTo(target) < eps) {
+                        return 1;
+                    }
+                }
+            }
+
+            if (iter < MAXITER)
+                return 1;
+            else {
+                console.log("do not converge");
+                return 0;
+            }
+        }
+        //////////////
+        var texture;
+        var scene, renderer, camera, controls;
+        var link1, link2;
+        var Rlink1, Rlink2;
+        var torso;
+        var keyboard = new KeyboardState();
+        var angle = 0;
+        var Bike;
+        var sign = 0;
+        var wheel1, wheel2;
+        var Ltheta1 = 0,
+            Ltheta2 = 0;
+        var Rtheta1 = 0,
+            Rtheta2 = 0;
+        var LtargetMesh, RtargetMesh;
+
+        var joints = []; // world pos of three joints
+        var axes = [];
+        var target = new THREE.Vector3();
+
+        var clock = new THREE.Clock();
+        var ts, T = 5;
+
+        var Lkeys = [
+            [0, [-20.5, -33.5]],
+            [0.125, [-23.3, -28.0]],
+            [0.25, [-11.2, -31.7]],
+            [0.375, [14.0, -36.3]],
+            [0.5, [18.6, -37.3]],
+            [0.625, [11.2, -35.4]],
+            [0.75, [1.9, -35.4]],
+            [0.875, [-8.4, -35.4]],
+            [1, [-20.5, -33.5]]
+        ];
+
+        var Rkeys = [
+            [0., [18.6, -37.3]],
+            [0.125, [11.2, -35.4]],
+            [0.25, [1.9, -35.4]],
+            [0.375, [-8.4, -35.4]],
+            [0.5, [-20.5, -33.5]],
+            [0.625, [-23.3, -28.0]],
+            [0.75, [-11.2, -31.7]],
+            [0.875, [14.0, -36.3]],
+            [1.0, [18.6, -37.3]]
+        ];
+
+        init();
+        animate();
+
+        ////////////////////////////////////////////////////////
+        // forward kinematics: in torso coordinate system
+        //
+        function fk(theta, joints) {
+            joints[0] = new THREE.Vector3(0, 0, 0);
+
+            var m = new THREE.Matrix4();
+            m.makeTranslation(0, 0, 0);
+
+            m.multiply(new THREE.Matrix4().makeRotationZ(-Math.PI / 2 + theta[0]));
+            m.multiply(new THREE.Matrix4().makeTranslation(20, 0, 0));
+            var localzero = new THREE.Vector3(0, 0, 0);
+            localzero.applyMatrix4(m);
+            joints[1].copy(localzero);
+
+            m.multiply(new THREE.Matrix4().makeRotationZ(theta[1]));
+            m.multiply(new THREE.Matrix4().makeTranslation(30, 0, 0));
+            localzero.set(0, 0, 0);
+            localzero.applyMatrix4(m);
+            joints[2].copy(localzero);
+        }
+
+        /////////////////////////////////////////////////////////////
+        // joint axis setup
+        //
+        function setarm() {
+            var axis = new CCD_axis(new THREE.Vector3(0, 0, 1), 0);
+            axes.push(axis);
+            var axis = new CCD_axis(new THREE.Vector3(0, 0, 1), 1);
+            axis.limits = new THREE.Vector2(-3.1, -0.01);
+            axes.push(axis);
+        }
+
+
+        ////////////////////////////////////////////////////////////////
+        function init() {
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x888888);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.y = 160;
+            camera.position.z = 400;
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            document.body.appendChild(renderer.domElement);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            var gridXZ = new THREE.GridHelper(100, 10);
+            gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+            scene.add(gridXZ);
+            var axisHelper = new THREE.AxisHelper(50);
+            scene.add(axisHelper);
+
+
+            //////////////////////////////////////////////////
+            ts = clock.getElapsedTime();
+
+            torso = new THREE.Object3D();
+            scene.add(torso);
+            torso.position.y = 100;
+            LtargetMesh = new THREE.Mesh(new THREE.SphereGeometry(3, 3, 20, 20), new THREE.MeshBasicMaterial({
+                color: 0xd71111
+            }));
+            //torso.add(LtargetMesh);
+            RtargetMesh = LtargetMesh.clone();
+            //torso.add(RtargetMesh);
+
+            Bike = makeBike(50);
+            torso.add(Bike);
+            link1 = makeLink(30);
+            link1.position.set(-25, 0, -5.5);
+            // link1.rotation.order = 'ZYX';
+            link1.rotation.z = -Math.PI / 2;
+            torso.add(link1);
+            link2 = makeLink(25);
+            link1.add(link2);
+            link2.position.set(30, 0, 0);
+
+            Rlink1 = makeLink(30);
+            Rlink1.position.set(-25, 0, 5.5);
+            // link1.rotation.order = 'ZYX';
+            Rlink1.rotation.z = -Math.PI / 2;
+            torso.add(Rlink1);
+            Rlink2 = makeLink(25);
+            Rlink1.add(Rlink2);
+            Rlink2.position.set(30, 0, 0);
+
+            for (var i = 0; i < 3; i++)
+                joints[i] = new THREE.Vector3();
+
+            // setting ccd_box
+            setarm();
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function makeLink(length) {
+            var oneLink = new THREE.Object3D();
+            var mesh = new THREE.Mesh(new THREE.BoxGeometry(length, 5, 5), new THREE.MeshNormalMaterial());
+            oneLink.add(mesh);
+            mesh.position.set(length / 2, 0, 0);
+            return oneLink;
+        }
+
+        function makeBike(length) {
+            THREE.ImageUtils.crossOrigin = '';
+            texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/bc6QWXZ.png');
+            texture.wrapS = THREE.RepeatWrapping;
+            var Bike = new THREE.Object3D();
+            var mesh = new THREE.Mesh(new THREE.BoxGeometry(length, 5, 5), new THREE.MeshNormalMaterial());
+            var seat = new THREE.Mesh(new THREE.BoxGeometry(50, 2, 2), new THREE.MeshNormalMaterial());
+            wheel1 = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 0.5, 100, 1, false, 0, 2 * Math.PI), new THREE.MeshBasicMaterial({
+                map: texture
+            }));
+            wheel2 = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 0.5, 100, 1, false, 0, 2 * Math.PI), new THREE.MeshBasicMaterial({
+                map: texture
+            }));
+            Bike.add(mesh);
+            Bike.add(wheel1);
+            Bike.add(wheel2);
+            Bike.add(seat);
+            seat.rotation.y = Math.PI * 2 / 3;
+            seat.position.set((-length / 2) + 5, 0, 25);
+            mesh.position.set(0, 0, 20);
+            wheel1.position.set(length / 2, 0, 50)
+            wheel2.position.set(-length / 2, 0, 50)
+            Bike.rotation.x = Math.PI / 2;
+            return Bike;
+        }
+
+        function onWindowResize() {
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            keyboard.update();
+            if (keyboard.down('up')) {
+                T -= 0.25;
+                sign = 1;
+            }
+            if (keyboard.down('down')) {
+                T += 0.25;
+                sign = -1;
+            }
+            update();
+            render();
+        }
+
+        function update() {
+            var t = clock.getElapsedTime();
+            var angle1 = angle;
+            if (sign === 1) {
+                angle -= (Math.pow(0.5,T));
+            } else if (sign === -1) {
+                angle -= (Math.pow(0.5,T));
+            }
+            console.log("sub of to angle"+"="+ (angle1-angle) + " T = " + T);
+
+            //torso.position.set(100 * Math.cos(angle), 41, -100 * Math.sin(angle));
+            //torso.rotation.y = angle + Math.PI / 2;
+
+            var s = ((t - ts) % T) / T;
+
+            for (var i = 0; i < Lkeys.length; i++) {
+                if (s < Lkeys[i][0]) break; // take i-1
+            }
+            var ii = i - 1;
+            var alpha = (s - Lkeys[ii][0]) / (Lkeys[ii + 1][0] - Lkeys[ii][0]);
+
+            var pos = [1, 1];
+            //console.log (s + ',' + ii);
+
+            // left leg
+            for (var j = 0; j < 2; j++) {
+                pos[j] = (1 - alpha) * Lkeys[ii][1][j] + alpha * Lkeys[ii + 1][1][j];
+            }
+            target.set(pos[0], pos[1], 0);
+            LtargetMesh.position.set(pos[0], pos[1], -5.5);
+
+            var theta = [Ltheta1, Ltheta2];
+
+            // ik_ccd works on the theta array
+            ik_ccd(target, theta);
+
+            // copy the theta array to theta1 & theta2
+            Ltheta1 = theta[0], Ltheta2 = theta[1];
+
+            //theta1 = Math.PI/6; theta2 = - Math.PI/6;
+
+            // right leg
+            for (var j = 0; j < 2; j++) {
+                pos[j] = (1 - alpha) * Rkeys[ii][1][j] + alpha * Rkeys[ii + 1][1][j];
+            }
+            target.set(pos[0], pos[1], 0);
+            RtargetMesh.position.set(pos[0], pos[1], 5.5);
+
+            var theta = [Rtheta1, Rtheta2];
+
+            // ik_ccd works on the theta array
+            ik_ccd(target, theta);
+
+            // copy the theta array to theta1 & theta2
+            Rtheta1 = theta[0], Rtheta2 = theta[1];
+
+            wheel1.rotation.y = angle;
+            wheel2.rotation.y = angle;
+            console.log("angle" + "=" + angle);
+
+
+        }
+
+
+        function render() {
+
+            link1.rotation.z = -Math.PI / 2 + Ltheta1;
+            link2.rotation.z = Ltheta2;
+
+            Rlink1.rotation.z = -Math.PI / 2 + Rtheta1;
+            Rlink2.rotation.z = Rtheta2;
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
