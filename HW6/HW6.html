@@ -130,6 +130,7 @@
         var angle2 = 0;
         var Bike;
         var sign = 0;
+        var theta =0
         var wheel1, wheel2;
         var Ltheta1 = 0,
             Ltheta2 = 0;
@@ -331,7 +332,7 @@
         function computeForce() {
           //thrust
             angle = angle1-angle2
-            force = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), angle).multiplyScalar(-2*Math.PI*15*angle1/360);
+            force = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), angle - theta).multiplyScalar(-2*Math.PI*15*angle1/360);
 
 
     			// drag
@@ -353,7 +354,18 @@
                 T += 0.25;
                 sign = -1;
             }
-
+            if (keyboard.down("right")) {
+              theta += 1;
+            }
+            if (keyboard.up("right")) {
+              theta -= 1;
+            }
+            if (keyboard.down("left")) {
+              theta -= 1;
+            }
+            if (keyboard.up("left")) {
+              theta += 1;
+            }
             update();
             computeForce();
       			var dt = clock.getDelta(); // delta-time
