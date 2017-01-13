@@ -120,12 +120,14 @@
         }
         //////////////
         var texture;
+        var angle1;
         var scene, renderer, camera, controls;
         var link1, link2;
         var Rlink1, Rlink2;
         var torso;
         var keyboard = new KeyboardState();
         var angle = 0;
+        var angle2 = 0;
         var Bike;
         var sign = 0;
         var wheel1, wheel2;
@@ -134,14 +136,15 @@
         var Rtheta1 = 0,
             Rtheta2 = 0;
         var LtargetMesh, RtargetMesh;
-
+        var mass = 1 ;
         var joints = []; // world pos of three joints
         var axes = [];
         var target = new THREE.Vector3();
-
+        var pos;
         var clock = new THREE.Clock();
         var ts, T = 5;
-
+        var force = new THREE.Vector3(1,0,0);
+        var vel = new THREE.Vector3(1,0,0);
         var Lkeys = [
             [0, [-20.5, -33.5]],
             [0.125, [-23.3, -28.0]],
@@ -220,11 +223,12 @@
             document.body.appendChild(renderer.domElement);
             controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-            var gridXZ = new THREE.GridHelper(100, 10);
+            //////////////////
+            var gridXZ = new THREE.GridHelper(500, 10);
             gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
             scene.add(gridXZ);
-            var axisHelper = new THREE.AxisHelper(50);
-            scene.add(axisHelper);
+
+            window.addEventListener('resize', onWindowResize, false);
 
 
             //////////////////////////////////////////////////
@@ -239,7 +243,10 @@
             //torso.add(LtargetMesh);
             RtargetMesh = LtargetMesh.clone();
             //torso.add(RtargetMesh);
-
+            var bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(10,50,20), new THREE.MeshNormalMaterial());
+            bodyMesh.position.set(-10,10,0);
+            bodyMesh.rotation.z= -Math.PI/3;
+            torso.add(bodyMesh);
             Bike = makeBike(50);
             torso.add(Bike);
             link1 = makeLink(30);
@@ -266,6 +273,10 @@
             // setting ccd_box
             setarm();
             window.addEventListener('resize', onWindowResize, false);
+            ////////////
+            force = new THREE.Vector3();
+            pos = new THREE.Vector3();
+            vel = new THREE.Vector3();
         }
 
         function makeLink(length) {
@@ -283,6 +294,8 @@
             var Bike = new THREE.Object3D();
             var mesh = new THREE.Mesh(new THREE.BoxGeometry(length, 5, 5), new THREE.MeshNormalMaterial());
             var seat = new THREE.Mesh(new THREE.BoxGeometry(50, 2, 2), new THREE.MeshNormalMaterial());
+            var handle1 = new THREE.Mesh(new THREE.BoxGeometry(40, 2, 2), new THREE.MeshNormalMaterial());
+            var handle2 = new THREE.Mesh(new THREE.BoxGeometry(40, 5, 5), new THREE.MeshNormalMaterial());
             wheel1 = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 0.5, 100, 1, false, 0, 2 * Math.PI), new THREE.MeshBasicMaterial({
                 map: texture
             }));
@@ -293,8 +306,14 @@
             Bike.add(wheel1);
             Bike.add(wheel2);
             Bike.add(seat);
+            Bike.add(handle1);
+            Bike.add(handle2);
             seat.rotation.y = Math.PI * 2 / 3;
             seat.position.set((-length / 2) + 5, 0, 25);
+            handle1.rotation.y =-Math.PI * 2 / 3;
+            handle1.position.set((length / 2) -20, 0, 30);
+            handle2.rotation.z =-Math.PI/2;
+            handle2.position.set((length / 2)-10, 0, 10);
             mesh.position.set(0, 0, 20);
             wheel1.position.set(length / 2, 0, 50)
             wheel2.position.set(-length / 2, 0, 50)
@@ -309,6 +328,18 @@
             camera.updateProjectionMatrix();
             renderer.setSize(width, height);
         }
+        function computeForce() {
+          //thrust
+            angle = angle1-angle2
+            force = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), angle).multiplyScalar(-2*Math.PI*15*angle1/360);
+
+
+    			// drag
+    			var alpha = 0.55;
+    			force.add(vel.clone().multiplyScalar(-alpha));
+
+
+        }
 
         function animate() {
             requestAnimationFrame(animate);
@@ -322,19 +353,32 @@
                 T += 0.25;
                 sign = -1;
             }
+
             update();
+            computeForce();
+      			var dt = clock.getDelta(); // delta-time
+      			// vel = vel + force/mass * dt
+      			vel.add(force.clone().multiplyScalar(dt / mass));
+      			// pos = pos + vel * dt
+      			pos.add(vel.clone().multiplyScalar(dt));
+
+      			// copy to cylinder
+           torso.position.copy(pos);
+           torso.position.y = 60;
+
+
             render();
         }
 
         function update() {
             var t = clock.getElapsedTime();
-            var angle1 = angle;
+             angle1 = angle2;
             if (sign === 1) {
-                angle -= (Math.pow(0.5,T));
+                angle2 -= (Math.pow(0.35,T));
             } else if (sign === -1) {
-                angle -= (Math.pow(0.5,T));
+                angle2 -= (Math.pow(0.35,T));
             }
-            console.log("sub of to angle"+"="+ (angle1-angle) + " T = " + T);
+            console.log("sub of to angle"+"="+ (angle1-angle2) + " T = " + T);
 
             //torso.position.set(100 * Math.cos(angle), 41, -100 * Math.sin(angle));
             //torso.rotation.y = angle + Math.PI / 2;
@@ -382,9 +426,9 @@
             // copy the theta array to theta1 & theta2
             Rtheta1 = theta[0], Rtheta2 = theta[1];
 
-            wheel1.rotation.y = angle;
-            wheel2.rotation.y = angle;
-            console.log("angle" + "=" + angle);
+            wheel1.rotation.y = angle2;
+            wheel2.rotation.y = angle2;
+            console.log("angle2" + "=" + angle2);
 
 
         }
