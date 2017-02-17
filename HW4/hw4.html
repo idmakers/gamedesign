@@ -32,114 +32,44 @@
 	<script>
 		var camera, scene, renderer, controls;
 		var puck;
-		var cube;
-		var raycaster;
-		var mouse = new THREE.Vector2();
-		var pickables = [];
-		var angle = 0;
-		var agents = []
-			// steer related
-		var target = new THREE.Vector3();
-		var targetMesh;
-		var obCen1 = new THREE.Vector3(0, 0, -100);
-		var obCen2 = new THREE.Vector3(100, 0, 0);
-		var obCen3 = new THREE.Vector3(-100, 0, 0);
-		var obCen4 = new THREE.Vector3(0, 0, 100);
-		var obRad = 50;
-		var group = new THREE.Object3D();
+		var agents = [];
 
-		//var power;
+		var pickables = [];
+		var pickplane;
+		var raycaster = new THREE.Raycaster();
+		var mouse = new THREE.Vector2();
+
 		var mass = 1;
 		var clock = new THREE.Clock();
 
+		//var target = new THREE.Vector3();
 
 		var Agent = function(mesh, initPos) {
 			this.pos = new THREE.Vector3();
-			if (initPos) this.pos.copy(initPos);
+			if (initPos)
+				this.pos.copy(initPos);
+			else
+				this.pos.set(200 * Math.random(), 0, 200 * Math.random());
+
 			this.vel = new THREE.Vector3();
 			this.force = new THREE.Vector3();
 			this.target = new THREE.Vector3();
 			this.angle = 0;
-			this.mesh = mesh;
-			this.nbhd = [];
+			this.mesh = mesh.clone();
+			scene.add(this.mesh);
 			this.maxSpeed = 60;
 			this.maxForce = 60;
 
 			this.setTarget = function(target) {
 				this.target.copy(target);
 			}
-			this.cohesion = function(agents) {
-				// set pos as the average of my nbhd.pos
-				var total = 0,
-					avg = 0;
-				for (var i = 0; i < this.nbhd.length; i++) {
-					total = total + this.nbhd[i].pos;
-				}
-				avg = total / this.nbhd.length;
-				this.newpos = avg;
-			}
 
-
-			// compute force
 			this.update = function(dt) {
 				// compute force
 				this.force = this.target.clone().sub(this.pos).setLength(this.maxSpeed).sub(this.vel);
 
-				// collision avoidance
-				// (for each obstacle)
-
-				var tmp = obCen1.clone().sub(this.pos);
-				var tmpProj = tmp.clone().projectOnVector(this.vel);
-
-				//console.log (tmp.dot(this.vel));
-
-				if (tmp.dot(this.vel) > 0) {
-					if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
-
-						if (tmpProj.length() < 5 * this.vel.length()) {
-							this.force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
-						}
-					}
-				}
-				var tmp = obCen2.clone().sub(this.pos);
-				var tmpProj = tmp.clone().projectOnVector(this.vel);
-
-				//console.log (tmp.dot(this.vel));
-
-				if (tmp.dot(this.vel) > 0) {
-					if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
-
-						if (tmpProj.length() < 5 * this.vel.length()) {
-							this.force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
-						}
-					}
-				}
-				var tmp = obCen3.clone().sub(this.pos);
-				var tmpProj = tmp.clone().projectOnVector(this.vel);
-
-				//console.log (tmp.dot(this.vel));
-
-				if (tmp.dot(this.vel) > 0) {
-					if (tmpProj.clone().sub(tmp).length() < obRad + 3) {
-
-						if (tmpProj.length() < 5 * this.vel.length()) {
-							this.force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
-						}
-					}
-				}
-				var tmp = obCen4.clone().sub(this.pos);
-				var tmpProj = tmp.clone().projectOnVector(this.vel);
-
-				//console.log (tmp.dot(this.vel));
-
-				if (tmp.dot(this.vel) > 0) {
-					if (tmpProj.clone().sub(tmp).length() < obRad + 10) {
-
-						if (tmpProj.length() < 5 * this.vel.length()) {
-							this.force.add(tmpProj.clone().sub(tmp).multiplyScalar(2));
-						}
-					}
-				}
+				// group steering
+				groupSteer(this);
 
 				// force clamping
 				if (this.force.length() > this.maxForce)
@@ -160,32 +90,41 @@
 				// catch handling
 				if (this.pos.distanceTo(this.target) < 2) {
 					this.vel.set(0, 0, 0);
-					angle = Math.random() * Math.PI * 2;
 				}
-
-
 
 			}
 		}
 
-		function computeNbhd() {
-			var n = agents.length; // number of agents
-			var R = 10;
-
-			// test it with n = 5
-			for (var i = 0; i < n - 1; i++) {
-				for (var j = i + 1; j < n; j++) {
-					if (Math.abs(agents[i].pos - agents[j].pos) < R) {
-						agents[i].nbhd.push(agents[j]);
-						agents[j].nbhd.push(agents[i]);
-					}
+		function groupSteer(myself) {
+			// find agents in my neighborhood
+			var nbhd = [];
+			var R = 50;
+			for (var i = 0; i < agents.length; i++) {
+				if (agents[i] === myself) {
+					continue;
+				}
+				if (myself.pos.distanceToSquared(agents[i].pos) < R * R) {
+					nbhd.push(agents[i]);
 				}
 			}
 
+			// find separation force ... the most important one !
+			for (var i = 0; i < nbhd.length; i++) {
+				var r = myself.pos.distanceTo(nbhd[i].pos);
+				var push = myself.pos.clone().sub(nbhd[i].pos).setLength(80 / r);
+				myself.force.add(push);
+			}
+
+			// find cohesion force
+			var avePos = new THREE.Vector3();
+			for (var i = 0; i < nbhd.length; i++)
+				avePos.add(nbhd[i].pos);
+			avePos.multiplyScalar(1 / nbhd.length);
+			var pull = avePos.sub(myself.pos).multiplyScalar(.5);
+			myself.force.add(pull);
+
+			// find alignment force
 		}
-
-
-
 
 		init();
 		animate();
@@ -197,8 +136,7 @@
 			camera.position.z = 500;
 			scene.add(camera);
 
-			var gridXZ = new THREE.GridHelper(200, 10);
-			gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+			var gridXZ = new THREE.GridHelper(200, 20, 20,'red', 'white');
 			scene.add(gridXZ);
 
 			renderer = new THREE.WebGLRenderer();
@@ -206,64 +144,29 @@
 			renderer.setClearColor(0x888888);
 
 			controls = new THREE.OrbitControls(camera, renderer.domElement);
-
 			document.body.appendChild(renderer.domElement);
 
-			var geometry = new THREE.BoxGeometry(15, 2, 5);
-			var material = new THREE.MeshNormalMaterial();
-			cube = new THREE.Mesh(geometry, material);
-			agents.push(new Agent(cube, new THREE.Vector3(100, 0, 0)));
-			var geometry = new THREE.BoxGeometry(15, 2, 5);
-			var material = new THREE.MeshNormalMaterial();
-			cube = new THREE.Mesh(geometry, material);
-			agents.push(new Agent(cube, new THREE.Vector3(0, 0, 100)));
-			var geometry = new THREE.BoxGeometry(15, 2, 5);
-			cube = new THREE.Mesh(geometry, material);
-			var material = new THREE.MeshNormalMaterial();
-			agents.push(new Agent(cube, new THREE.Vector3(100, 0, 100)));
-
-			for (var i = 0; i < agents.length; i++) {
-				scene.add(agents[i].mesh);
-			}
-
-			var ob1 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob1.rotation.x = -Math.PI / 2;
-			ob1.position.z = -100;
-			var ob2 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob2.rotation.x = -Math.PI / 2;
-			ob2.position.z = 100;
-			var ob3 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob3.rotation.x = -Math.PI / 2;
-			ob3.position.x = -100;
-			var ob4 = new THREE.Mesh(new THREE.CircleGeometry(obRad, 20));
-			ob4.rotation.x = -Math.PI / 2;
-			ob4.position.x = 100;
-			group.add(ob1);
-			group.add(ob2);
-			group.add(ob3);
-			group.add(ob4);
-			scene.add(group);
-
-			/////////////////////////////////////////////////////////////////////
-			plane = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({
+			pickplane = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({
 				visible: false
 			}));
-			scene.add(plane);
-			plane.rotation.x = -Math.PI / 2;
-			pickables = [plane];
+			pickplane.rotation.x = -Math.PI / 2;
+			scene.add(pickplane);
+			pickables.push(pickplane);
 
-			puck = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 2, 20), new THREE.MeshNormalMaterial());
-			scene.add(puck);
-			pos = new THREE.Vector3();
-			vel = new THREE.Vector3(100, 0, 0);
-			force = new THREE.Vector3();
-
-			target = puck.position;
-
-			raycaster = new THREE.Raycaster();
 			document.addEventListener('mousedown', onDocumentMouseDown, false);
-		}
 
+			//////////////////////
+
+			var geometry = new THREE.BoxGeometry(15, 2, 5);
+			var material = new THREE.MeshNormalMaterial();
+			var box = new THREE.Mesh(geometry, material);
+			for (var i = 0; i < 10; i++)
+				agents.push(new Agent(box));
+
+			puck = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 2, 20), new THREE.MeshNormalMaterial());
+			scene.add(puck);
+
+		}
 
 		function onDocumentMouseDown(event) {
 
@@ -284,27 +187,16 @@
 			var intersects = raycaster.intersectObjects(pickables);
 			if (intersects.length > 0) {
 				puck.position.copy(intersects[0].point);
+				for (var i = 0; i < agents.length; i++)
+					agents[i].setTarget(puck.position);
 			}
 
 		}
 
-
-
 		function animate() {
-
-			var dt = clock.getDelta(); // delta-time
-			computeNbhd();
-			for (var i = 0; i < agents.length; i++) {
+			var dt = clock.getDelta();
+			for (var i = 0; i < agents.length; i++)
 				agents[i].update(dt);
-				agents[i].cohesion();
-				agents[i].setTarget(target);
-			}
-
-
-
-
-
-			puck.position.copy(target);
 
 			controls.update();
 			requestAnimationFrame(animate);
